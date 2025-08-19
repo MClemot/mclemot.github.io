@@ -1,0 +1,377 @@
+<!DOCTYPE HTML>
+<!--
+	Prologue by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Mattéo Clémot</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="icon" type="image/png" href="icon.png">
+		<meta name="robots" content="noindex, nofollow" />
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<div id="header">
+
+				<div class="top">
+
+					<!-- Logo -->
+						<div id="logo">
+							<a href="index.html">
+								<span class="image"><img src="icon.png" alt="" width=64 height=64 /></span>
+								<h1 id="title">Mattéo Clémot</h1>
+								<p>Student in Computer Science</p>
+							</a>
+						</div>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html" id="top-link"><span class="icon solid fa-home">Home</span></a></li>
+								<li><div style='background-color: #3a3a3a; min-height: 1px; margin-right: 10%; margin-left: 10%;'></div></li>
+								<li><a href="glsl.html" id="code-link"><span class="icon solid fa-code">Fractals</span></a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+				<div class="bottom">
+
+					<!-- Social Icons -->
+						<ul class="icons">
+							<li><a href="https://github.com/MClemot" class="icon brands fa-github"><span class="label">Github</span></a></li>
+							<li><a href="mailto:matteo.clemot@ens-lyon.fr" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+							<li><a href="https://orcid.org/0009-0000-2524-0244" class="icon brands fa-orcid"><span class="label">Orcid</span></a></li>
+						</ul>
+
+				</div>
+
+			</div>
+
+		<!-- Main -->
+			<div id="main">
+				<!-- Home -->
+					<section id="home" class="two">
+						<header>
+							<h2>Mandelbulb sphere-tracing rendering</h2>
+						</header>
+						<div class="container">
+							<div class="row">           
+					            <div class="col-3 col-12-mobile" id="control">
+				                    <label>Power \(n\) in \(z\mapsto z^n+c\):</label>
+				                    <div><span>n: </span><input id="number_q"   min="2" step="1." type="number" value="8"></div><br/>
+				                    <label>Parameters:</label>
+				                    <div><span>k: </span><input id="number_k"   min=".2" step=".1" type="number" value=".8"></div>
+				                    <div><span>e: </span><input id="number_eps" min=".0001" step=".0001" type="number" value=".002"></div><br/>
+				                    <label>Colors:</label>
+				                    <div><span>Diffuse: </span><input type="color" value="#ffffff" class="colorpicker" id="color_gra"></div>
+				                    <div><span>Background: </span><input type="color" value="#770000" class="colorpicker" id="color_grb"></div>
+					            </div>
+					            
+					            <div class="col-9 col-12-mobile">
+					                <div id="container"></div>
+					            </div>
+					        </div>
+					    </div>
+					</section>
+			</div>
+
+		<!-- Footer -->
+			<div id="footer">
+
+				<!-- Copyright -->
+					<ul class="copyright">
+						<li>&copy; Mattéo Clémot. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+					</ul>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+			<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+			<script src="three.min.js"></script>
+	    	<script id="fragmentShader" type="x-shader/x-fragment">
+	            uniform float camx;
+	            uniform float camy;
+	            uniform float r;
+	            uniform float phi;
+	            uniform float th;
+	            uniform float qq;
+	            uniform float k;
+	            uniform float eps;
+	            uniform vec3 gra;
+	            uniform vec3 grb;
+	            const vec3 amb = vec3(.6,.8,1.);
+
+	            const float f=2.;
+	            const vec3 light = vec3(1.,1.,1.);
+
+	            const float d = .000001;
+	            
+	            vec3 er   = vec3(sin(th)*cos(phi), sin(th)*sin(phi), cos(th));
+	            vec3 eth  = vec3(cos(th)*cos(phi), cos(th)*sin(phi), -sin(th));
+	            vec3 ephi = vec3(-sin(phi), cos(phi), 0.);
+	            
+	            vec3 focus = (r+f)*er;
+
+	            float estimator(vec3 pos) {
+	                vec3 q = pos;
+	                float dr = 1.;
+	                float r = 0.;
+	                for(int i=0; i<20; ++i) {
+	                    r = length(q);
+	                    if(r > 20.)
+	                        break;
+	                    float theta = acos(q.z/r);
+	                    float phi = atan(q.y,q.x);
+	                    dr = qq*pow(r,qq-1.)*dr + 1.0;
+	                    float qr = pow(r,qq);
+	                    theta = theta*qq;
+	                    phi = phi*qq;
+	                    q = qr*vec3(sin(theta)*cos(phi),
+	                                sin(phi)*sin(theta),
+	                                cos(theta));
+	                    q = q+pos;
+	                }
+	                return .5*log(r)*r/dr;
+	            }
+	            
+	            vec3 normal_estimator(vec3 pos) {
+	                vec3 px2 = pos + vec3(d, 0, 0);
+	                vec3 py2 = pos + vec3(0, d, 0);
+	                vec3 pz2 = pos + vec3(0, 0, d);
+
+	                float e = estimator(pos);                
+	                vec3 N = vec3(estimator(px2)-e, estimator(py2)-e, estimator(pz2)-e);
+	                return normalize(N);
+	            }
+	            
+	            void main(void)
+	            {            
+	                vec3 proj  = r*er + (2.*float(gl_FragCoord.x)-camx)/camx*ephi + (2.*float(gl_FragCoord.y)-camy)/camx*eth;
+	                vec3 ray = proj - focus;
+	                ray = normalize(ray);
+	            
+	                vec3 p = focus;
+	                float d = 2.*eps;
+
+	                /*while(d >= eps && length(p) <= r+f+.1) {
+	                    d = estimator(p);
+	                    p += k*d*ray;
+	                }*/
+
+	                for(int j=0; j<10000; ++j) {
+	                    if(d < eps || length(p) > r+f+.1)
+	                        break;
+	                    d = estimator(p);
+	                    p += k*d*ray;
+	                }
+	            
+	                if(d < eps) {
+	                    vec3 normal = normal_estimator(p);
+	                    float i = dot(normal, normalize(light));
+	                    
+	                    gl_FragColor = vec4(.1*amb+.9*i*gra, 1.);
+	                }
+	                else
+	                    gl_FragColor = vec4(grb, 1.);
+	                //gl_FragColor = vec4(0.,1.,0.,1.);
+	            }
+	        </script>
+	        <script>
+	            var container;
+	            var camera, scene, renderer;
+	            var uniforms;
+	            var mouseX, mouseY;
+	            var startX, startY, mode, zoomX, zoomY;
+	            var propX, propY;
+	    
+	            init();
+	            animate();
+	    
+	            var R, PHI, TH, uniforms, t;
+	    
+	            function init() {
+	                t = 0;
+	                container = document.getElementById( 'container' );
+	    
+	                camera = new THREE.Camera();
+	                camera.position.z = 1;
+	    
+	                scene = new THREE.Scene();
+	    
+	                var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
+	    
+	                if (window.innerWidth > window.innerHeight) {
+	                	propX = .55;
+	                	propY = .7;
+	                }
+	                else {
+	                	propX = .9;
+	                	propY = .6;
+	                }
+
+	                var estimX = propX*window.innerWidth*window.devicePixelRatio;
+	                var estimY = propY*window.innerHeight*window.devicePixelRatio;
+
+	                GRA = new THREE.Vector3(1.,1.,1.);
+	                GRB = new THREE.Vector3(.5,0.,0.);
+	    
+	                uniforms = {
+	                    camx : { type: "f", value: estimX },
+	                    camy : { type: "f", value: estimY },
+	                    r : { type: "f", value: 3. },
+	                    phi : { type: "f", value: 0. },
+	                    th : { type: "f", value: -1. },
+	                    k : { type: "f", value: .8 },
+	                    eps : { type: "f", value: 0.002 },
+	                    qq : { type: "f", value: 8. },
+	                    gra : { type: "vec3", value: GRA },
+	                    grb : { type: "vec3", value: GRB }
+	                };
+	    
+	                var material = new THREE.ShaderMaterial( {
+	                    uniforms: uniforms,
+	                    fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+	                } );
+	    
+	                var mesh = new THREE.Mesh( geometry, material );
+	                scene.add( mesh );
+	    
+	                renderer = new THREE.WebGLRenderer();
+	                renderer.setPixelRatio( window.devicePixelRatio );
+	    
+	                container.appendChild( renderer.domElement );
+	    
+	                onWindowResize();
+	                window.addEventListener( 'resize', onWindowResize, false );
+	                container.addEventListener( 'wheel', onWheelMoved, false );
+	    
+	                function update(e) {
+	                    mouseX = e.pageX;
+	                    mouseY = e.pageY;
+	                }
+	    
+	                container.onmousemove = update;
+	    
+	                document.onmouseup = function() {
+	                    container.onmousemove = update;
+	                }
+	    
+	                container.onmousedown = function() {
+	                    container.onmousemove = function(e){
+
+	                        uniforms.phi.value += .01*(e.pageX-mouseX);
+	                        uniforms.th.value += .01*(e.pageY-mouseY);
+	                        update(e);
+	                    }
+	                }
+
+	                container.addEventListener('touchstart', onTouchStart, false);
+	                container.addEventListener('touchmove', onTouchMove, false);
+	                container.addEventListener('touchend', onTouchStart, false);
+
+	                document.getElementById('number_k').oninput = function() { uniforms.k.value = this.value; }
+	                document.getElementById('number_eps').oninput = function() { uniforms.eps.value = this.value; }
+	                document.getElementById('number_q').oninput = function() { uniforms.qq.value = this.value; }
+
+	                document.getElementById('color_gra').oninput = function() {
+	                     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.value);
+	                     GRA = new THREE.Vector3(parseInt(result[1], 16)/255, parseInt(result[2], 16)/255, parseInt(result[3], 16)/255);
+	                     uniforms.gra.value = GRA;
+	                }
+	                document.getElementById('color_grb').oninput = function() {
+	                     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.value);
+	                     GRB = new THREE.Vector3(parseInt(result[1], 16)/255, parseInt(result[2], 16)/255, parseInt(result[3], 16)/255);
+	                     uniforms.grb.value = GRB;
+	                }
+	            }
+	    
+	            function onWheelMoved( event ) {
+	                if(event.deltaY > 0)
+	                    uniforms.r.value *= 1.1;
+	                else
+	                    uniforms.r.value /= 1.1;
+	                event.preventDefault();
+    				event.stopPropagation();
+	            }
+
+	            function onTouchStart(e) {
+	                if(e.touches.length == 1) {
+	                    mode = 1
+	                    var touchobj = e.touches[0];
+	                    startX = parseInt(touchobj.clientX);
+	                    startY = parseInt(touchobj.clientY);
+	                    e.preventDefault();
+	                }
+	                else if (e.touches.length == 2) {
+	                    mode = 2
+	                    var touchobj0 = e.touches[0];
+	                    var touchobj1 = e.touches[1];
+	                    var X0 = parseInt(touchobj0.clientX);
+	                    var Y0 = parseInt(touchobj0.clientY);
+	                    var X1 = parseInt(touchobj1.clientX);
+	                    var Y1 = parseInt(touchobj1.clientY);
+	                    startX = Math.sqrt((X0-X1)*(X0-X1)+(Y0-Y1)*(Y0-Y1));
+	                    e.preventDefault();
+	                }
+	            }
+	    
+	            function onTouchMove(e) {
+	                if(e.touches.length == 1) {
+	                    if(mode == 2)
+	                        onTouchStart(e);
+	                    else {
+	                        var touchobj = e.changedTouches[0];
+	                        uniforms.phi.value += .01*(parseInt(touchobj.clientX) - startX);
+	                        uniforms.th.value += .01*(parseInt(touchobj.clientY) - startY);
+	                        startX = parseInt(touchobj.clientX);
+	                        startY = parseInt(touchobj.clientY);
+	                        uniforms.ox.value = OX;
+	                        uniforms.oy.value = OY;
+	                        e.preventDefault();
+	                    }
+	                }
+	                else if (e.touches.length == 2) {
+	                    var touchobj0 = e.touches[0];
+	                    var touchobj1 = e.touches[1];
+	                    var X0 = parseInt(touchobj0.clientX);
+	                    var Y0 = parseInt(touchobj0.clientY);
+	                    var X1 = parseInt(touchobj1.clientX);
+	                    var Y1 = parseInt(touchobj1.clientY);
+	                    var N = Math.sqrt((X0-X1)*(X0-X1)+(Y0-Y1)*(Y0-Y1));
+	                    uniforms.r.value *= startX/N;
+	                    startX = N;
+	                    e.preventDefault();
+	                }
+	            }
+	    
+	            function onWindowResize( event ) {
+	                renderer.setSize( propX*window.innerWidth, propY*window.innerHeight );
+	            }
+	    
+	            function animate() {
+	                requestAnimationFrame( animate );
+	                render();
+	            }
+	    
+	            function render() {
+	                renderer.render( scene, camera );
+	            }
+	        </script>
+	</body>
+</html>
