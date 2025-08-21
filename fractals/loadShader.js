@@ -4,8 +4,7 @@ async function loadShader(url) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const shaderSource = await response.text();
-        return shaderSource;
+        return await response.text();
         } catch (error) {
         console.error("Error while loading shader:", error);
         return null;

@@ -110,8 +110,6 @@ function init() {
     container.addEventListener('touchend', onTouchStart, false);
 
     document.getElementById('poly').oninput = function() {
-        //document.getElementById("demoP").innerHTML = code(this.value.match(/\-*\d+/g));
-        //document.getElementById("demodP").innerHTML = code(deriv(this.value.match(/\-*\d+/g)));
         container.removeChild(renderer.domElement);
         init();
     }
