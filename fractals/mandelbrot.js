@@ -47,8 +47,7 @@ function init() {
         it : { type: "i", value: IT },
         clr : { type: "vec3", value: CLR },
         gra : { type: "vec3", value: GRA },
-        grb : { type: "vec3", value: GRB },
-        clrmode : { type: "i", value: 1}
+        grb : { type: "vec3", value: GRB }
     };
 
     setShader('fractals/mandelbrot.frag', uniforms, scene, geometry);
@@ -186,21 +185,6 @@ function onTouchMove(e) {
         startX = N;
         e.preventDefault();
     }
-}
-
-function onClrModeChange () {
-    const rbs = document.querySelectorAll('input[name="clrmode"]');
-    let selectedValue;
-    for (const rb of rbs) {
-        if (rb.checked) {
-            selectedValue = rb.value;
-            break;
-        }
-    }
-    if(selectedValue == "log")
-        uniforms.clrmode.value = 1;
-    else if (selectedValue == "lin")
-        uniforms.clrmode.value = 1;
 }
 
 function onWindowResize( event ) {

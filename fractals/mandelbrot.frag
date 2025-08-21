@@ -5,7 +5,6 @@ uniform int it;
 uniform vec3 clr;
 uniform vec3 gra;
 uniform vec3 grb;
-uniform int clrmode;
 
 vec2 sqr(vec2 z) {
     return vec2(z.x*z.x-z.y*z.y, 2.*z.x*z.y);
@@ -68,10 +67,7 @@ void main()
                 break;
             i+=1;
         }
-        //if(clrmode)
-            float c = log(float(i)+1.)/log(float(it)+1.);
-        /*else
-            float c = float(i)/float(it);*/
+        float c = log(float(i)+1.)/log(float(it)+1.);
         if(i == it)
             gl_FragColor = vec4(clr, 1.);
         else

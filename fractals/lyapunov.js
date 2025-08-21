@@ -205,21 +205,6 @@ function onTouchMove(e) {
     }
 }
 
-function onClrModeChange () {
-    const rbs = document.querySelectorAll('input[name="clrmode"]');
-    let selectedValue;
-    for (const rb of rbs) {
-        if (rb.checked) {
-            selectedValue = rb.value;
-            break;
-        }
-    }
-    if(selectedValue == "log")
-        uniforms.clrmode.value = 1;
-    else if (selectedValue == "lin")
-        uniforms.clrmode.value = 1;
-}
-
 function onWindowResize( event ) {
     renderer.setSize( propX*window.innerWidth, propY*window.innerHeight );
 }
