@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topological Autoencoders++</title>
+  <link rel="stylesheet" href="../reveal.js/dist/reset.css">
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="vis2026/vis2026.css">
+  <link rel="icon" type="image/x-icon" href="/vis2026/img/donut.svg">
+  <style>
+    /* Institution logos in the top-right white space of the title slide */
+    .reveal section.vis-title .title-logos {
+      position: absolute;
+      top: 128px;                 /* vertically centred on the VIS logo (y = 137..299) */
+      right: 86px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      gap: 70px;
+    }
+    .reveal section.vis-title .title-logos img {
+      margin: 0;
+      max-height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section class="vis-title">
+        <div class="title-logos">
+          <img src="images/logos/UL1_Logo1-couleur-RVB-120.svg" alt="Université Lyon 1" style="height: 155px;">
+          <img src="images/logos/Logo_of_Sorbonne_University.svg" alt="Sorbonne Université" style="height: 121px;">
+          <img src="images/logos/erc.png" alt="ERC" style="height: 178px;">
+        </div>
+        <h1>Topological Autoencoders++:<br>Cycle-aware dimensionality reduction</h1>
+        <p><b>Mattéo Clémot<sup>1</sup></b>, Julie Digne<sup>2,1</sup>, Julien Tierny<sup>2,3</sup></p>
+        <p class="affiliations">
+          <span><sup>1</sup>Université Lyon 1</span>
+          <span><sup>2</sup>CNRS</span>
+          <span><sup>3</sup>Sorbonne Université</span>
+        </p>
+      </section>
+
+      <section>
+        <h2>Dimensionality reduction</h2>
+        <div class="vis-stage">
+          <div class="vis-row">
+            <img src="images/TAEpp/MNIST.png" width="40%">
+            <span class="vis-arrow">$\longrightarrow$</span>
+            <img src="images/TAEpp/MNIST_dim2.png" width="30%">
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Dimensionality reduction: preserving cycles</h2>
+        <div class="vis-stage">
+          <div class="vis-row">
+            <img src="images/TAEpp/coil-1.png" width="32%">
+            <span class="vis-arrow">$\longrightarrow$</span>
+            <img src="images/TAEpp/COIL20_dim2.png" width="30%">
+          </div>
+        </div>
+      </section>
+
+      <section class="vis-dense">
+        <h2>Topological features in high-dimensional data</h2>
+        <br>
+        <div class="vis-columns">
+          <div class="fragment">
+            <h3>Motion capture ($d=62$)</h3>
+            <p>angles between the bones of a skeleton</p>
+            <br>
+            <img src="images/intro/mocap_walk.gif" width="50%">
+            <span class="loccredit" style="display: block; text-align: center; font-size: 0.5em;">[CMU motion capture dataset]</span>
+          </div>
+          <div class="fragment">
+            <h3>Single-cell omics ($d>1000$)</h3>
+            <p>expression of genes/proteins of cells at different cycle stages</p>
+            <img src="images/intro/Cell_Cycle_2.svg" width="50%">
+            <span class="loccredit" style="display: block; text-align: center; font-size: 0.5em;">[Wikimedia Commons]</span>
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Filtrations and persistent homology (PH)</h2>
+        <div class="vis-columns vis-2-3">
+          <div>
+            <div class="vis-anim-box" data-id="rips-complex">
+              <svg id="rips-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+            </div>
+            <br>
+            <div class="vis-slider">
+              <label for="rips-slider">radius $r$</label>
+              <input type="range" id="rips-slider" min="0" max="0.3" step="0.001" value="0">
+              <span id="rips-r-value">0.000</span>
+            </div>
+          </div>
+          <div style="align-self: center;">
+            <p><b>Rips filtration</b> $\ripsf{r}(\pc) = \left\{\sigma\subset\pc\mid\delta(\sigma)\leq2r\right\}$</p>
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Persistence diagram</h2>
+        <div class="vspace1"></div>
+        <div class="vis-stage">
+          <div class="vis-row">
+            <div class="vis-anim-box" data-id="rips-complex">
+              <svg id="rips-pd-complex-svg" width="700" height="700" viewBox="0 0 700 700"></svg>
+            </div>
+            <div style="position: relative; flex: none; line-height: 0;">
+              <div style="position: absolute; bottom: 100%; left: 0; right: 0; text-align: center; line-height: normal;">$\dgmrips{}(\pc)$</div>
+              <svg id="rips-pd-svg" width="700" height="700" viewBox="0 0 700 700"></svg>
+            </div>
+          </div>
+          <p class="vis-center">radius $r$ = <span id="rips-pd-r-value">0.000</span></p>
+        </div>
+      </section>
+
+      <!-- <section data-auto-animate>
+        <h2>Persistence diagram</h2>
+        <div class="vis-stage">
+          <div class="r-stack">
+            <img class="fragment fade-out" data-fragment-index="0" src="images/intro/diagram_interpret.svg" width="86%">
+            <img class="fragment fade-in-then-out" data-fragment-index="0" src="images/intro/diagram_interpret_dg0.svg"
+              width="86%">
+            <img class="fragment fade-in-then-out" data-fragment-index="1" src="images/intro/diagram_interpret_dg1a.svg"
+              width="86%">
+            <img class="fragment fade-in-then-out" data-fragment-index="2" src="images/intro/diagram_interpret_dg1b.svg"
+              width="86%">
+            <img class="fragment fade-in" data-fragment-index="3" src="images/intro/diagram_interpret_dg1c.svg"
+              width="86%">
+          </div>
+        </div>
+      </section> -->
+
+      <section class="vis-dense">
+        <h2>Autoencoders with topological constraints</h2>
+        <div class="vis-columns vis-middle">
+          <div>
+            <img src="images/TAEpp/TAE.svg" width="100%" />
+          </div>
+
+          <div class="vis-stack-rows">
+            <div class="fragment fade-in-then-out vis-span" data-fragment-index="0" style="width:100%;">
+              <!-- <p>Reconstruction loss function:</p> -->
+              \[\lossr=\|\widetilde{\pc}-\pc\|^2\]
+            </div>
+
+            <div class="fragment fade-in-then-out vis-span" data-fragment-index="1" style="width:100%;">
+              <p>
+                \[
+                \losst=\sum_{\hdim\in\{0,1\}}\calw_2\bigl(\dgmrips{\hdim}(\pc),\dgmrips{\hdim}(\lpc)\bigr).
+                \]
+                <br>
+                $\rightarrow$ loses information about which vertices are involved in which cycle
+              </p>
+            </div>
+
+            <div class="fragment fade-in-then-out vis-top" data-fragment-index="2" style="width:100%;">
+              <p>
+                <!-- <em>Topological Autoencoders</em> <span class="loccredit">[Moor et al., 2020]</span>: -->
+                \[
+                \begin{split}
+                \losst=\ltopoae{\hdim}=
+                &\|A^\pc[\critical{\hdim}(\pc)]-A^\lpc[\critical{\hdim}(\pc)]\|_2^2 +\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              <p>$\rightarrow$ <em>Topological Autoencoders</em> <span class="loccredit">[Moor et al., 2020]</span></p>
+              <!-- <p>$\rightarrow$ $\critical{\hdim}(\pc)$ are the <em>critical</em> edges of $\pc$</p> -->
+              <!-- where $\critical{\hdim}(\pc)$ are the <em>critical</em> edges of $\pc$ (create/destroy a positive
+                $\PH{q}$ class, $q\leq\hdim$). -->
+              </p>
+            </div>
+
+            <div class="fragment fade-in vis-top" data-fragment-index="3" style="width:100%;">
+              <p>
+                <!-- In practice, in <span class="loccredit">[Moor et al., 2020]</span>, $\hdim=0$: -->
+                \[
+                \begin{split}
+                \losst=\ltopoae{0}=
+                &\|A^\pc[\critical{0}(\pc)]-A^\lpc[\critical{0}(\pc)]\|_2^2+\\
+                &\|A^\lpc[\critical{0}(\lpc)]-A^\pc[\critical{0}(\lpc)]\|_2^2
+                \end{split}
+                \]
+                $\rightarrow$ aims at preserving connected components
+              </p>
+            </div>
+
+            <div class="fragment fade-in-then-out figure-legend-right vis-bottom" data-fragment-index="2">
+              <img src="images/TAEpp/tae1.svg" width="50%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death ($\critical{0}$)</span>
+                <span><i style="--color: var(--c-red)"></i>$\PH{1}$ birth ($\critical{1}$)</span>
+                <span><i style="--color: var(--c-blue)"></i>$\PH{1}$ death ($\critical{1}$)</span>
+              </div>
+            </div>
+            <div class="fragment fade-in figure-legend-right vis-bottom" data-fragment-index="3">
+              <img src="images/TAEpp/tae0.svg" width="50%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death ($\critical{0}$)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Properties</h2>
+        <div class="vis-stage">
+          <div class="vis-narrow">
+            <blockquote class="theorem" data-id="block-tae-bound">
+              <div class="block-title">TAE upper-bounds the Wasserstein distance</div>
+              For any point clouds $\pc$, $\lpc$ of equal size:
+              \[\calw_2\bigl(\dgmrips{0}(\pc),\dgmrips{0}(\lpc)\bigr)^2\leq\ltopoae{0}(\pc,\lpc).\]
+            </blockquote>
+            <p>(and under a general position assumption, $\ltopoae{0}(\pc,\lpc)=0$ implies identical $\PH{0}$ pairs)</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section data-auto-animate class="vis-dense">
+          <h2>However</h2>
+          <div class="vis-stage">
+            <div class="vis-columns vis-middle" style="grid-template-columns: 3fr 1fr 2fr;">
+              <div>
+                <blockquote class="theorem" data-id="block-tae-bound" style="font-size:38px;">
+                  <div class="block-title">TAE vs Wasserstein distance</div>
+                  For point clouds $\pc$, $\lpc$ of equal size:
+                  \[\calw_2\bigl(\dgmrips{0}(\pc),\dgmrips{0}(\lpc)\bigr)^2\leq\ltopoae{0}(\pc,\lpc).\]
+                </blockquote>
+                <!-- \[
+                \ltopoae{0}(\pc,\lpc)=0 \implies\dgmrips{0}(\pc)=\dgmrips{0}(\lpc)
+                \] -->
+                <p>but</p>
+                \[
+                \ltopoae{1}(\pc,\lpc)=0 \nRightarrow\left\{
+                \begin{array}{l}
+                \dgmrips{0}(\pc)=\dgmrips{0}(\lpc)\\
+                \dgmrips{1}(\pc)=\dgmrips{1}(\lpc)
+                \end{array}
+                \right.
+                \]
+              </div>
+              <div>
+                <div id="plot-however" style="width:300px;height:400px;margin:auto;"></div>
+              </div>
+              <div>
+                <img src="images/TAEpp/ltae.svg" width="100%">
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Counter-example</h2>
+          <div class="vis-stage">
+            <div class="vis-row">
+              <div>
+                $Z=\begin{bmatrix}
+                1 & 0 \\
+                0.5 & 0.866 \\
+                -0.48 & 0.667 \\
+                -0.98 &-0.199 \\
+                -0.48 &-1.065 \\
+                0.5 &-0.866
+                \end{bmatrix}$
+              </div>
+              <img src="images/TAEpp/counter-example.svg" width="50%">
+              <div>
+                $X=
+                \begin{bmatrix}
+                1 & 0 & 0 \\
+                0.5 & 0.866 & 0 \\
+                -0.48 & 0.667 & 0 \\
+                -0.73 & -0.199 & 0.433 \\
+                -0.48 & -1.065 & 0 \\
+                0.5 & -0.866 & 0
+                \end{bmatrix}$
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <section>
+          <h2>Cascade distortion</h2>
+          <div class="vis-stage">
+            <div class="vis-columns vis-middle" style="grid-template-columns: 2fr 1fr 1fr;">
+              <div>
+                <p>
+                  <b>Idea:</b> constrain more edge lengths to favor an isometric embedding of the 2-chains filling the
+                  1-cycles.
+                </p>
+                <br>
+                <p>$\longrightarrow$ take edges appearing in the <em>persistent cascade</em></p>
+                <br>
+                \[\critical{\hdim}(\pc)\subset\skelcasc^\hdim(\pc)\]
+              </div>
+              <div class="vis-center">
+                \[\critical{1}(\pc)\]
+                <video src="images/TAEpp/tae_orbit.mp4" height="580" data-autoplay autoplay loop muted playsinline></video>
+              </div>
+              <div class="vis-center">
+                \[\skelcasc^1(\pc)\]
+                <video src="images/TAEpp/cascade_orbit.mp4" height="580" data-autoplay autoplay loop muted playsinline></video>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Cascade distortion</h2>
+          <div class="vis-stage">
+            <img src="images/TAEpp/eliminateBoundaries.svg" width="100%">
+          </div>
+        </section>
+      </section>
+
+      <section class="vis-dense">
+        <h2>Topological autoencoders, with CD</h2>
+        <div class="vis-columns vis-middle">
+          <div>
+            <img src="images/TAEpp/TAE.svg" width="100%" />
+          </div>
+
+          <div class="vis-stack-rows">
+            <div class="fragment fade-out vis-top" data-fragment-index="0" style="width:100%;">
+              <p>
+                \[
+                \begin{split}
+                \losst=\ltopoae{\hdim}=
+                &\|A^\pc[\critical{\hdim}(\pc)]-A^\lpc[\critical{\hdim}(\pc)]\|_2^2 +\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              </p>
+            </div>
+
+            <div class="fragment fade-in vis-top" data-fragment-index="0" style="width:100%;">
+              <p>
+                \[
+                \begin{split}
+                \losst=\lcascae{\hdim}=
+                &\|A^\pc[\skelcasc^\hdim(\pc)]-A^\lpc[\skelcasc^\hdim(\pc)]\|_2^2+\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              </p>
+            </div>
+
+            <div class="fragment fade-out figure-legend-right vis-bottom" data-fragment-index="0">
+              <img src="images/TAEpp/tae1.svg" width="50%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death</span>
+                <span><i style="--color: var(--c-red)"></i>$\PH{1}$ birth</span>
+                <span><i style="--color: var(--c-blue)"></i>$\PH{1}$ death</span>
+                <!-- invisible placeholder: same legend size as the CD figure, so the image does not move -->
+                <span style="visibility: hidden;"><i style="--color: var(--c-yellow)"></i>cascade edges</span>
+              </div>
+            </div>
+            <div class="fragment fade-in figure-legend-right vis-bottom" data-fragment-index="0">
+              <img src="images/TAEpp/cd1.svg" width="50%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death</span>
+                <span><i style="--color: var(--c-red)"></i>$\PH{1}$ birth</span>
+                <span><i style="--color: var(--c-blue)"></i>$\PH{1}$ death</span>
+                <span><i style="--color: var(--c-yellow)"></i>cascade edges</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Results</h2>
+          <div class="vis-stage">
+            <div class="r-stack">
+              <img class="vis-fill" src="images/TAEpp/results_real_a.png">
+              <img class="vis-fill fragment" src="images/TAEpp/results_real_b.png">
+              <img class="vis-fill fragment" src="images/TAEpp/results_real_c.png">
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Results (synthetic)</h2>
+          <div class="vis-stage">
+            <img class="vis-fill" src="images/TAEpp/results_synthetic.png">
+          </div>
+        </section>
+        <section>
+          <h2>Results (non-planar)</h2>
+          <div class="vis-stage">
+            <img src="images/TAEpp/results_k5.png" width="100%">
+          </div>
+        </section>
+        <section>
+          <h2>Results (quantitative)</h2>
+          <div class="vis-stage">
+            <img class="vis-fill" src="images/TAEpp/results_quantitative.png">
+          </div>
+        </section>
+      </section>
+
+      <section class="vis-dense">
+        <h2>Topological autoencoders, with CD</h2>
+        <div class="vis-columns vis-middle">
+          <div>
+            <img src="images/TAEpp/TAE.svg" width="100%" />
+            <ul>
+              <li class="fragment">each iteration computes $\PH{}(Z)$, with $Z\subset\bbr^2$</li>
+              <li class="fragment"><b>we introduce a dedicated algorithm</b></li>
+            </ul>
+          </div>
+          <div class="vis-stack-rows">
+            <div class="vis-top" style="width:100%;">
+              <p>
+                \[
+                \begin{split}
+                \losst=\lcascae{\hdim}=
+                &\|A^\pc[\skelcasc^\hdim(\pc)]-A^\lpc[\skelcasc^\hdim(\pc)]\|_2^2+\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              </p>
+            </div>
+            <div class="figure-legend-right vis-bottom">
+              <img src="images/TAEpp/cd1.svg" width="50%">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section class="vis-dense">
+          <h2>Faster planar Rips persistence</h2>
+          <br>
+          <p>Algorithm for planar Rips PH using a <b>geometric characterization</b> of <b>cycle-killing edges</b>.</p>
+          <br>
+          <div class="vis-columns vis-middle vis-2-3">
+            <div>
+              <img src="images/TAEpp/algo/PD_geometry+CH.svg" width="100%">
+            </div>
+            <div class="vis-row">
+              <img src="images/TAEpp/benchmark_uniform.svg" width="49%">
+              <img src="images/TAEpp/benchmark_ring.svg" width="49%">
+            </div>
+          </div>
+          <br>
+          <ul class="fragment">
+            <li>acceleration of the overall dimensionality reduction approach</li>
+            <li>check out the paper for more details!</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Faster planar Rips persistence: tools</h2>
+          <div class="vis-columns">
+            <div>
+              <h3>Relative neighborhood graph ($\rng$)</h3>
+              <span class="loccredit">[Toussaint, 1980]</span>
+              <ul>
+                <li>edges with an empty <i>lens</i></li>
+                <li>$\mst(\pc)\subseteq\rng(\pc)\subseteq\del(\pc)$</li>
+              </ul>
+              <span class="vspace1"></span>
+              <div class="figure-legend-right">
+                <img src="images/TAEpp/algo/geo_graphs_noUG.svg" width="45%">
+                <div class="legend vertical">
+                  <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+                  <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+                  <span><i style="--color: gray" class="thin"></i>$\del\setminus\rng$</span>
+                </div>
+              </div>
+            </div>
+            <div class="fragment" data-fragment-index="1">
+              <h3>Minmax length triangulations ($\mml$)</h3>
+              <span class="loccredit">[Edelsbrunner et al., 1993]</span>
+              <ul>
+                <li>minimize the longest edge's length</li>
+                <li>$\calo(n^2)$, solved in each $\rng$-polygon</li>
+              </ul>
+              <span class="vspace1"></span>
+              <div class="figure-legend-right">
+                <img src="images/TAEpp/algo/mml_graphs.svg" width="45%">
+                <div class="legend vertical">
+                  <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+                  <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+                  <span><i style="--color: gray" class="thin"></i>$\mml$</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="vis-dense">
+          <h2>Geometric graphs and Rips PH</h2>
+          <ul>
+            <li>$\mst$ edges are the ones killing $\PH{0}$ classes</li>
+            <li class="fragment">$\rng\setminus\mst$ edges are the ones creating positive $\PH{1}$ classes <span
+                class="loccredit">[Koyama et al., 2024]</span></li>
+          </ul>
+          <span class="vspace1"></span>
+          <div class="vis-columns vis-middle vis-3-2 fragment">
+            <blockquote class="theorem">
+              <div class="block-title">Characterization of cycle-killing edges</div>
+              In the plane, edges killing positive $\PH{1}$ classes are the longest edges of the $\mml$ triangulations
+              of
+              each $\rng$-polygon.
+            </blockquote>
+            <img src="images/TAEpp/algo/PD_geometry+CH.svg" width="100%">
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <div>
+          <h2>Takeaways</h2>
+          <ul>
+            <li>2D embeddings that <b>preserve PH</b>, both qualitatively and quantitatively</li>
+            <li>New algorithm for <b>fast</b> Rips persistence diagrams of planar point sets</li>
+          </ul>
+        </div>
+        <br><br><br>
+        <div class="fragment">
+          <h2>Limitations and further work</h2>
+          <ul>
+            <li>Initial PH computation (in high dimension) limits the input size</li>
+            <li>Theoretical guarantees?</li>
+            <!-- <li>Stochastic optimization: runs may get stuck in bad local minima</li> -->
+          </ul>
+        </div>
+      </section>
+
+      <section class="vis-dense">
+        <h2>Integration into the Topology ToolKit (TTK)</h2>
+        <div class="vis-stage">
+          <div class="vis-columns vis-middle vis-2-1">
+            <div>
+              <img src="images/topologicalAutoEncoderPlusPlus.jpg" width="100%">
+              <small>example available online: <a
+                  href="https://topology-tool-kit.github.io/examples/topoAEppTeaser/">https://topology-tool-kit.github.io/examples/topoAEppTeaser</a>
+              </small>
+            </div>
+            <div>
+              <ul>
+                <li>an open-source library for topological data analysis and visualization</li>
+                <li>written in C++, Python interface</li>
+                <li>ParaView plugin (open-source scientific visualization software)</li>
+              </ul>
+              <span class="vspace1"></span>
+              <div class="vis-row">
+                <img src="images/logos/ttk.png" width="20%" />
+                <img src="images/logos/ParaView-Logo.svg" width="70%" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-background="images/topologicalAutoEncoderPlusPlus.jpg" data-visibility="hidden">
+        <h3 style="color:white; background-color: #ffffff66; padding-bottom: 10px;">Cycle-aware dimensionality reduction
+          TTK example</h3>
+      </section>
+
+      <section class="vis-closing">
+        <div class="vis-closing-body">
+          <h1>Thank you! Questions?</h1>
+          <p>Funding: ERC TORI (<a href="https://erc-tori.github.io/">https://erc-tori.github.io/</a>)</p>
+        </div>
+        <!-- <p>Paper, code &amp; data: your-link.org</p> -->
+        <div class="vis-qr">
+          <figure>
+            <div class="vis-qr-label">Paper</div><img src="images/qr-paper.png">
+          </figure>
+          <figure>
+            <div class="vis-qr-label">TTK example</div><img src="images/qr-ttk.svg">
+          </figure>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script src="../reveal.js/dist/plugin/math.js"></script>
+  <script src="js/plotly-4.0.0.min.js"></script>
+  <script src="js/init.js"></script>
+
+  <script src="js/filtration-data.js"></script>
+  <script src="js/filtration-core.js"></script>
+  <script src="js/filtration-view.js"></script>
+  <script src="js/persistence-view.js"></script>
+
+  <script src="js/slides.js"></script>
+</body>
+
+</html>

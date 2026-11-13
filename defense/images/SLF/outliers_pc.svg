@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="360pt" height="360pt" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-07T10:31:37.341092</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 360 
+L 360 360 
+L 360 0 
+L 0 0 
+L 0 360 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="PathCollection_1">
+    <defs>
+     <path id="me764abab24" d="M 0 3 
+C 0.795609 3 1.55874 2.683901 2.12132 2.12132 
+C 2.683901 1.55874 3 0.795609 3 0 
+C 3 -0.795609 2.683901 -1.55874 2.12132 -2.12132 
+C 1.55874 -2.683901 0.795609 -3 0 -3 
+C -0.795609 -3 -1.55874 -2.683901 -2.12132 -2.12132 
+C -2.683901 -1.55874 -3 -0.795609 -3 0 
+C -3 0.795609 -2.683901 1.55874 -2.12132 2.12132 
+C -1.55874 2.683901 -0.795609 3 0 3 
+z
+" style="stroke: #000000"/>
+    </defs>
+    <g clip-path="url(#pc3b693cd33)">
+     <use xlink:href="#me764abab24" x="40.253096" y="259.726395" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="69.287845" y="294.912496" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="130.313947" y="311.900099" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="187.510441" y="294.686379" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="28.783395" y="219.304184" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="45.292164" y="144.558296" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="25.182999" y="174.299236" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="80.436581" y="135.482082" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="112.492584" y="138.295299" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="96.290811" y="307.513881" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="156.824511" y="309.277809" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="143.138204" y="140.52762" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="219.604365" y="272.410015" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="235.806134" y="232.805667" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="244.807132" y="199.115613" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="280.811069" y="188.700834" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="318.615232" y="177.899634" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="334.817001" y="149.096469" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="322.215629" y="117.593017" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="305.113749" y="78.888767" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="246.229323" y="48.099901" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="279.01087" y="57.286387" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="216.904051" y="49.185497" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="190.977717" y="66.435587" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="186.857236" y="102.317265" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="174.922149" y="133.233305" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="168.020378" y="241.184904" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="125.496022" y="207.165419" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="253.069091" y="156.136192" style="stroke: #000000"/>
+     <use xlink:href="#me764abab24" x="82.971666" y="241.184904" style="stroke: #000000"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pc3b693cd33">
+   <rect x="10.8" y="10.8" width="338.4" height="338.4"/>
+  </clipPath>
+ </defs>
+</svg>

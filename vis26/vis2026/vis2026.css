@@ -1,0 +1,818 @@
+/*
+ * IEEE VIS 2026 theme for reveal.js
+ * Mimics VIS2026_presentation_template.pptx.
+ *
+ * Use with reveal.css (no other theme), and initialize with the template's
+ * 16:9 canvas so that all measurements below are in slide pixels:
+ *
+ *   Reveal.initialize({ width: 1920, height: 1080, center: false, slideNumber: true });
+ *
+ * Slide layouts (class on <section>):
+ *   (none)          Title and Content — title + body, footer bar with logo and slide number
+ *   .vis-title      Title Slide
+ *   .vis-closing    Closing
+ *
+ * 1 pt in the .pptx = 2 px on the 1920×1080 canvas.
+ */
+
+:root {
+  --vis-dk1: #3B352F;      /* text */
+  --vis-lt1: #FFFFFF;
+  --vis-dk2: #693A19;      /* titles, section block */
+  --vis-lt2: #F3DFCF;      /* footer bar */
+  --vis-orange: #DF6824;   /* accent1: bullets, accent bars */
+  --vis-pink: #BB4A72;     /* accent2: title/closing blocks */
+  --vis-apricot: #F8A45A;  /* accent3: section subtitle */
+  --vis-rust: #934E13;     /* accent4 */
+  --vis-rose: #ED74B5;     /* accent5 */
+  --vis-gray: #8A817A;     /* accent6 */
+  --vis-link: #C4681A;
+  --vis-link-visited: #934E13;
+
+  --vis-heading-font: Georgia, "Noto Serif", "DejaVu Serif", "Times New Roman", serif;
+  --vis-body-font: Arial, "Liberation Sans", Helvetica, sans-serif;
+  --vis-code-font: "DejaVu Sans Mono", Consolas, Menlo, monospace;
+
+  --vis-texture: url(img/texture.png) 0 0 / 400px 400px repeat;
+}
+
+/*********************************************
+ * GLOBAL
+ *********************************************/
+
+.reveal-viewport {
+  background: var(--vis-lt1);
+}
+
+.reveal {
+  font-family: var(--vis-body-font);
+  font-size: 48px;               /* body level 1: 24 pt */
+  font-weight: normal;
+  color: var(--vis-dk1);
+}
+
+.reveal ::selection {
+  color: var(--vis-lt1);
+  background: var(--vis-orange);
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+/* Every slide fills the canvas so layout chrome can be painted on it */
+.reveal .slides section:not(.stack) {
+  box-sizing: border-box;
+  height: 100%;
+  top: 0;
+  padding: 118px 87px 130px 86px;
+  line-height: 1.2;
+  /* Title and Content: footer logo + snipped footer bar */
+  background:
+    url(img/logo.svg) 1596px 1013px / 238px 54px no-repeat,
+    linear-gradient(135deg, transparent 28px, var(--vis-lt2) 28px) 86px 1001px / 1834px 79px no-repeat,
+    var(--vis-lt1);
+}
+
+/*********************************************
+ * HEADINGS
+ *********************************************/
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  margin: 0 0 24px 0;
+  color: var(--vis-dk2);
+  font-family: var(--vis-heading-font);
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+}
+
+/* Slide title: 32 pt Georgia bold, bottom of a one-line title at y=182 */
+.reveal h1,
+.reveal h2 {
+  font-size: 64px;
+  line-height: 0.95;
+  margin-bottom: 30px;
+}
+
+/* Column headers ("Left column"): bold body text */
+.reveal h3 {
+  font-family: var(--vis-body-font);
+  font-size: 1em;
+  line-height: 1.2;
+  color: var(--vis-dk1);
+  margin: 0 0 4px 0;
+}
+
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  font-family: var(--vis-body-font);
+  font-size: 0.833em;
+  line-height: 1.2;
+  color: var(--vis-dk1);
+  margin: 0 0 4px 0;
+}
+
+.reveal h3 + ul,
+.reveal h3 + ol,
+.reveal h4 + ul,
+.reveal h4 + ol {
+  margin-top: -10px;
+}
+
+/*********************************************
+ * BODY TEXT
+ *********************************************/
+
+.reveal p {
+  margin: 20px 0;
+  line-height: 1.2;
+}
+
+.reveal strong,
+.reveal b {
+  font-weight: bold;
+}
+
+.reveal em {
+  font-style: italic;
+}
+
+.reveal a {
+  color: var(--vis-link);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.reveal a:hover {
+  color: var(--vis-orange);
+  text-decoration: underline;
+}
+
+.reveal a:visited {
+  color: var(--vis-link-visited);
+}
+
+.reveal small {
+  display: block;
+  font-size: 0.6em;
+  line-height: 1.3;
+  color: var(--vis-gray);
+}
+
+/*********************************************
+ * LISTS — orange "•", orange "–", pink "•"
+ *********************************************/
+
+.reveal ul,
+.reveal ol {
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.reveal ul > li,
+.reveal ol > li {
+  position: relative;
+  margin-top: 20px;             /* 10 pt before */
+  padding-left: 54px;           /* marL 0.375" */
+  line-height: 1.2;
+}
+
+.reveal section > ul:first-child > li:first-child,
+.reveal h1 + ul > li:first-child,
+.reveal h2 + ul > li:first-child,
+.reveal h1 + ol > li:first-child,
+.reveal h2 + ol > li:first-child {
+  margin-top: 0;
+}
+
+.reveal ul > li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--vis-orange);
+}
+
+.reveal ol {
+  counter-reset: vis-ol;
+}
+
+.reveal ol > li {
+  counter-increment: vis-ol;
+}
+
+.reveal ol > li::before {
+  content: counter(vis-ol) ".";
+  position: absolute;
+  left: 0;
+  color: var(--vis-orange);
+}
+
+/* Level 2: 20 pt, en dash */
+.reveal li ul,
+.reveal li ol {
+  margin-left: 11px;
+}
+
+.reveal li li {
+  font-size: 0.833em;           /* 20 pt */
+  margin-top: 10px;
+  padding-left: 50px;
+}
+
+.reveal li ul > li::before {
+  content: "–";
+}
+
+/* Level 3: 18 pt, small pink bullet */
+.reveal li li ul,
+.reveal li li ol {
+  margin-left: 15px;
+}
+
+.reveal li li li {
+  font-size: 0.9em;             /* 18 pt */
+  padding-left: 43px;
+}
+
+.reveal li li ul > li::before {
+  content: "•";
+  color: var(--vis-pink);
+  font-size: 0.7em;
+  line-height: 1.7;
+}
+
+.reveal li li ol > li::before {
+  color: var(--vis-pink);
+}
+
+.reveal dt {
+  font-weight: bold;
+}
+
+.reveal dd {
+  margin-left: 54px;
+}
+
+/*********************************************
+ * COLUMNS, FIGURES, QUOTES, CODE, TABLES
+ *********************************************/
+
+/* Two Content layout: 845 px columns with a 58 px gutter */
+.reveal .vis-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 58px;
+  align-items: start;
+}
+
+.reveal .vis-columns > * > :first-child,
+.reveal .vis-columns > * > ul:first-child > li:first-child {
+  margin-top: 0;
+}
+
+.reveal img,
+.reveal video,
+.reveal iframe {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure {
+  margin: 0;
+}
+
+.reveal figcaption {
+  margin-top: 12px;
+  font-size: 0.6em;
+  color: var(--vis-gray);
+}
+
+.reveal blockquote {
+  margin: 30px 0;
+  padding: 24px 40px;
+  background: #FBF3EC;
+  border-radius: 0;
+  font-family: var(--vis-heading-font);
+  font-style: italic;
+  color: var(--vis-dk2);
+  box-shadow: none;
+}
+
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+  margin: 0;
+}
+
+.reveal code {
+  font-family: var(--vis-code-font);
+  font-size: 0.85em;
+  color: var(--vis-rust);
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  margin: 20px 0;
+  font-family: var(--vis-code-font);
+  font-size: 28px;
+  line-height: 1.3;
+  text-align: left;
+  word-wrap: break-word;
+  box-shadow: none;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 20px 28px;
+  max-height: 600px;
+  overflow: auto;
+  font-size: inherit;
+  color: var(--vis-dk1);
+  background: #FBF3EC;
+  word-wrap: normal;
+}
+
+.reveal table {
+  margin: 20px 0;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 36px;
+}
+
+.reveal table th {
+  font-weight: bold;
+  color: var(--vis-dk2);
+  border-bottom: 3px solid var(--vis-orange);
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 10px 24px 10px 0;
+}
+
+.reveal table td {
+  border-bottom: 1px solid var(--vis-lt2);
+}
+
+.reveal table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/*********************************************
+ * TITLE SLIDE (.vis-title)
+ *********************************************/
+
+.reveal .slides section.vis-title:not(.stack) {
+  padding: 763px 165px 0 166px;
+  background:
+    url(img/logo.svg) 86px 137px / 706px 162px no-repeat,
+    linear-gradient(315deg, transparent 23px, var(--vis-orange) 23px) 0 0 / 907px 65px no-repeat,
+    linear-gradient(135deg, transparent 35px, var(--vis-pink) 35px) 86px 367px / 1834px 713px no-repeat,
+    var(--vis-texture),
+    var(--vis-lt1);
+}
+
+.reveal section.vis-title :is(h1, h2) {
+  position: absolute;
+  left: 166px;
+  bottom: 353px;                /* bottom-anchored at y=727 */
+  width: 1589px;
+  margin: 0;
+  font-size: 80px;              /* 40 pt */
+  line-height: 1.1;
+  color: var(--vis-lt1);
+}
+
+.reveal section.vis-title p {
+  margin: 0;
+  font-size: 44px;              /* 22 pt */
+  line-height: 1.65;
+  color: var(--vis-lt1);
+}
+
+.reveal section.vis-title p.affiliations {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.5em;
+  margin-top: 8px;
+  font-size: 32px;              /* 16 pt */
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.reveal section.vis-title sup {
+  position: relative;           /* raise without disturbing line-height */
+  top: -0.5em;
+  vertical-align: baseline;
+  margin-left: 0.05em;
+  font-size: 0.6em;
+  line-height: 0;
+}
+
+.reveal section.vis-title p.affiliations sup {
+  margin: 0 0.15em 0 0;         /* marker precedes the name */
+}
+
+.reveal section.vis-title a {
+  color: inherit;
+}
+
+/*********************************************
+ * CLOSING (.vis-closing)
+ *********************************************/
+
+.reveal .slides section.vis-closing:not(.stack) {
+  padding: 303px 165px 0 166px;
+  background:
+    url(img/logo.svg) 86px 720px / 662px 152px no-repeat,
+    linear-gradient(225deg, transparent 23px, var(--vis-orange) 23px) 0 1015px / 907px 65px no-repeat,
+    linear-gradient(45deg, transparent 34px, var(--vis-pink) 34px) 86px 86px / 1834px 540px no-repeat,
+    var(--vis-texture),
+    var(--vis-lt1);
+}
+
+.reveal section.vis-closing :is(h1, h2) {
+  position: absolute;
+  left: 166px;
+  bottom: 813px;                /* bottom-anchored at y=267 */
+  width: 1589px;
+  margin: 0;
+  font-size: 88px;              /* 44 pt */
+  line-height: 1.05;
+  color: var(--vis-lt1);
+}
+
+.reveal section.vis-closing p {
+  margin: 0;
+  font-size: 44px;              /* 22 pt */
+  line-height: 1.65;
+  color: var(--vis-lt1);
+}
+
+.reveal section.vis-closing a {
+  color: inherit;
+}
+
+/* optional wrapper: centers title + text vertically in the pink block (y=86..626) */
+.reveal section.vis-closing .vis-closing-body {
+  position: absolute;
+  top: 86px;
+  left: 166px;
+  right: 165px;
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.reveal section.vis-closing .vis-closing-body :is(h1, h2) {
+  position: static;
+  width: auto;
+}
+
+.reveal section.vis-closing .vis-closing-body :is(h1, h2) + p {
+  margin-top: 96px;             /* same gap as the original title/text spacing + one blank line */
+}
+
+/*********************************************
+ * SLIDE NUMBER — sits in the footer bar at x=151
+ *
+ * .slide-number lives outside the scaled slide, so its position is
+ * derived from the variables reveal.js sets on the viewport.
+ *********************************************/
+
+.reveal .slide-number {
+  --vis-s: var(--slide-scale, 1);
+  --vis-x0: calc((var(--viewport-width, 100vw) - var(--slide-width, 1920px) * var(--vis-s)) / 2);
+  --vis-y0: calc((var(--viewport-height, 100vh) - var(--slide-height, 1080px) * var(--vis-s)) / 2);
+  left: calc(var(--vis-x0) + 151px * var(--vis-s));
+  bottom: var(--vis-y0);
+  right: auto;
+  height: calc(79px * var(--vis-s));
+  padding: 0;
+  background: none;
+  font-family: var(--vis-body-font);
+  font-size: calc(28px * var(--vis-s));   /* 14 pt */
+  line-height: calc(79px * var(--vis-s));
+  color: var(--vis-dk2);
+}
+
+.reveal .slide-number a {
+  color: inherit;
+}
+
+.reveal:has(.slides section.present:is(.vis-title, .vis-closing)) .slide-number {
+  display: none !important;     /* reveal.js sets display inline */
+}
+
+/* PDF export: the number is rendered inside each page */
+.reveal .slide-number-pdf {
+  left: 151px;
+  top: 1001px;
+  bottom: auto;
+}
+
+/*********************************************
+ * REVEAL CONTROLS & PROGRESS
+ *********************************************/
+
+.reveal .controls {
+  color: var(--vis-orange);
+}
+
+.reveal .progress {
+  color: var(--vis-orange);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/*********************************************
+ * PRINT
+ *********************************************/
+
+@media print {
+  .backgrounds {
+    background-color: var(--vis-lt1);
+  }
+}
+
+/*********************************************
+ * CONTENT HELPERS
+ *
+ * Dense slides:      <section class="vis-dense">  (20 pt body)
+ * Content area:      <div class="vis-stage">…</div>  fills the space under a
+ *                    one-line title, content centered in it
+ * Columns:           <div class="vis-columns vis-2-1">…</div>  (+ .vis-middle to center vertically)
+ * Row of figures:    <div class="vis-row"><img …><img …></div>
+ *********************************************/
+
+:root {
+  /* colors used in the paper's figures, for legends */
+  --c-red: rgb(207, 36, 75);
+  --c-blue: rgb(73, 61, 245);
+  --c-green: rgb(89, 139, 148);
+  --c-yellow: rgb(242, 185, 13);
+}
+
+.reveal .slides section.vis-dense:not(.stack) {
+  font-size: 40px;
+}
+
+.reveal .katex {
+  font-size: 1em;
+}
+
+.reveal .katex-display {
+  margin: 0.5em 0;
+}
+
+/* everything below a one-line title, down to the footer */
+.reveal .vis-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 740px;
+}
+
+.reveal .vis-stage > img {
+  align-self: center;
+}
+
+/* image filling the stage height */
+.reveal .vis-stage > img.vis-fill {
+  height: 100%;
+  width: auto;
+}
+
+/* a single centered block narrower than the slide */
+.reveal .vis-narrow {
+  width: 75%;
+  margin: 0 auto;
+}
+
+.reveal .vis-stage > .vis-narrow {
+  align-self: center;
+}
+
+/* Column ratios for .vis-columns */
+.reveal .vis-columns.vis-2-1 { grid-template-columns: 2fr 1fr; }
+.reveal .vis-columns.vis-1-2 { grid-template-columns: 1fr 2fr; }
+.reveal .vis-columns.vis-3-2 { grid-template-columns: 3fr 2fr; }
+.reveal .vis-columns.vis-2-3 { grid-template-columns: 2fr 3fr; }
+.reveal .vis-columns.vis-middle { align-items: center; }
+
+.reveal .vis-columns > * {
+  min-width: 0;
+}
+
+.reveal .vis-columns img {
+  display: block;
+  margin: 0 auto;
+}
+
+/* figures side by side, centered */
+.reveal .vis-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.reveal .vis-row > img {
+  min-width: 0;
+  margin: 0;
+}
+
+/* Wrapper carrying data-id for auto-animate: reveal measures matched
+   elements with offsetLeft/offsetWidth (center: false), which <svg> lacks. */
+.reveal .vis-anim-box {
+  width: fit-content;
+  line-height: 0;
+}
+
+.reveal .vis-row > .vis-arrow {
+  flex: none;
+  color: var(--vis-orange);
+  font-size: 1.4em;
+}
+
+.reveal .vis-center {
+  text-align: center;
+}
+
+/* Two-row stack: every child overlaps in one column; .vis-top children share
+   the top row, .vis-bottom the bottom one, .vis-span span both (centered). */
+.reveal .vis-stack-rows {
+  display: grid;
+}
+
+.reveal .vis-stack-rows > * {
+  grid-column: 1;
+  margin: 0;
+}
+
+.reveal .vis-stack-rows > .vis-top { grid-row: 1; }
+.reveal .vis-stack-rows > .vis-bottom { grid-row: 2; }
+.reveal .vis-stack-rows > .vis-span { grid-row: 1 / 3; align-self: center; }
+
+/* inline citation: [Author et al., 2020] */
+.reveal .loccredit {
+  font-size: 0.8em;
+  font-style: italic;
+  color: var(--vis-gray);
+  white-space: nowrap;
+}
+
+.reveal .vspace1 { display: block; height: 1em; }
+
+/*********************************************
+ * THEOREM BLOCKS
+ * <blockquote class="theorem"><div class="block-title">Title</div>…</blockquote>
+ *********************************************/
+
+.reveal blockquote.theorem {
+  --block-color: var(--vis-orange);
+  margin: 20px 0;
+  padding: 0 32px 20px;
+  overflow: hidden;
+  background: #FBF3EC;
+  font-family: var(--vis-body-font);
+  font-style: italic;
+  color: var(--vis-dk1);
+  /* cut corner, like the template's blocks */
+  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px);
+}
+
+.reveal blockquote .block-title {
+  font-style: normal;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  margin: 0 -32px 16px;
+  padding: 10px 32px;
+  background: var(--block-color);
+  color: var(--vis-lt1);
+  font-family: var(--vis-heading-font);
+  font-weight: bold;
+}
+
+/*********************************************
+ * FIGURE LEGENDS
+ * <div class="legend"><span><i style="--color: …"></i>label</span>…</div>
+ * (.thin on the <i>; .vertical on the legend to stack)
+ *********************************************/
+
+.reveal .legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3em 1.5em;
+  font-size: 0.7em;
+}
+
+.reveal .legend i {
+  display: inline-block;
+  width: 1.8em;
+  border-top: 5px solid var(--color, currentColor);
+  vertical-align: middle;
+  margin-right: 0.4em;
+}
+
+.reveal .legend i.thin { border-top-width: 2px; }
+
+.reveal .legend.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* <div class="figure-legend-right"><img …><div class="legend vertical">…</div></div> */
+.reveal .figure-legend-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  width: 100%;
+}
+
+.reveal .figure-legend-right > img {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* nothing in the stage taller than the stage itself */
+.reveal .vis-stage img {
+  max-height: 740px;
+  object-fit: contain;
+}
+
+.reveal .vis-row > svg {
+  flex: none;
+  max-width: 100%;
+}
+
+/*********************************************
+ * INTERACTIVE FILTRATIONS (js/filtration-view.js)
+ * <div class="vis-slider"><label>…</label><input type="range" …><span>0.000</span></div>
+ *********************************************/
+
+.reveal .vis-slider {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  margin-top: 16px;
+  font-size: 0.8em;
+}
+
+.reveal .vis-slider input[type="range"] {
+  width: 260px;
+  accent-color: var(--vis-orange);
+  cursor: pointer;
+}
+
+.reveal .vis-slider > span {
+  min-width: 3.2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--vis-dk2);
+}
+
+/* QR codes on the closing slide, side by side in the free space right of the logo:
+   <div class="vis-qr"><figure><div class="vis-qr-label">…</div><img …></figure>…</div> */
+.reveal section.vis-closing .vis-qr {
+  position: absolute;
+  right: 86px;
+  bottom: 24px;
+  display: flex;
+  gap: 100px;
+}
+
+.reveal section.vis-closing .vis-qr img {
+  width: 340px;
+  height: 340px;
+  margin: 0;
+}
+
+/* label above each QR code, fits between the pink block and the codes */
+.reveal section.vis-closing .vis-qr-label {
+  margin-bottom: 8px;
+  font-size: 44px;
+  line-height: 1;
+  text-align: center;
+  color: var(--vis-dk1);
+}

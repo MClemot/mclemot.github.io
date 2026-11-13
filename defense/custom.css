@@ -1,0 +1,484 @@
+:root {
+    --c-red: rgb(207, 36, 75);
+    --c-blue: rgb(73, 61, 245);
+    --c-green: rgb(89, 139, 148);
+    --c-yellow: rgb(242, 185, 13);
+    --c-bg: rgb(240, 241, 235);
+    --r-heading4-size: 1.1em;
+    --r-heading1-size: 3.5em;
+}
+
+.reveal {
+    font-size: 30px;
+}
+
+.reveal small {
+    font-size:.8em;
+}
+
+.reveal small * {
+    vertical-align: baseline;
+}
+
+.hspace5 {
+    display: inline-block;
+    width: 5%;
+}
+
+.hspace10 {
+    display: inline-block;
+    width: 10%;
+}
+
+.vspace1 {
+    display: block;
+    height: 1em;
+}
+
+.vspace2 {
+    display: block;
+    height: 2em;
+}
+
+.vspace5 {
+    display: block;
+    height: 5em;
+}
+
+.reveal .credit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 0;
+    font-size: 0.6em;
+    font-style: italic;
+    color: #777;
+}
+
+.reveal .loccredit {
+    font-size: 1em;
+    font-style: italic;
+    color: #777;
+}
+
+.reveal .katex {
+    font-size: 1em;
+}
+
+.reveal .slides section ul,
+ol {
+    line-height: 1.5em;
+}
+
+.reveal strong {
+    font-weight: bold;
+    color: var(--c-red);
+}
+
+.plot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 70vh;
+}
+
+.reveal blockquote {
+    font-style: italic;
+}
+
+/* Beamer-like blocks: optional .block-title header, lighter body */
+.reveal blockquote.definition,
+.reveal blockquote.theorem {
+    --block-color: var(--c-red);
+    padding: 0.4em 0.7em;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    background: color-mix(in srgb, var(--block-color) 10%, var(--c-bg));
+}
+
+.reveal blockquote.definition {
+    --block-color: var(--c-blue);
+}
+
+/* inside a column, a block takes the column's width (the theme's 70% is meant for the whole slide) */
+.reveal [class*="col"] > blockquote {
+    width: 80%;
+}
+
+.reveal blockquote .block-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1em;
+    margin: -0.4em -0.7em 0.4em;
+    padding: 0.25em 0.7em;
+    background: var(--block-color);
+    color: white;
+    font-style: normal;
+    font-weight: bold;
+    text-align: left;
+}
+
+.reveal blockquote .block-title .block-ref {
+    font-weight: normal;
+    font-size: 0.75em;
+    opacity: 0.9;
+}
+
+.reveal .fragment.highlight-red.visible,
+.reveal .fragment.highlight-current-red.current-fragment {
+    color: var(--c-red);
+}
+
+.reveal .fragment.highlight-green.visible,
+.reveal .fragment.highlight-current-green.current-fragment {
+    color: var(--c-green);
+}
+
+.reveal .fragment.highlight-blue.visible,
+.reveal .fragment.highlight-current-blue.current-fragment {
+    color: var(--c-blue);
+}
+
+.reveal .slides section .fragment.step-fade-in-then-out {
+    opacity: 0;
+    display: none;
+}
+
+.reveal .slides section .fragment.step-fade-in-then-out.current-fragment {
+    opacity: 1;
+    display: inline;
+}
+
+/* inline text swap where each version takes its own width:
+   <span class="fragment fade-out swap-out" data-fragment-index="i">old</span><span class="fragment fade-in swap-in" data-fragment-index="i">new</span> */
+.reveal .slides section .fragment.swap-out.visible,
+.reveal .slides section .fragment.swap-in:not(.visible) {
+    display: none;
+}
+
+/* default reveal tables: see --hairline in js/init.js */
+.reveal table th,
+.reveal table td {
+    border-bottom-width: var(--hairline, 1px);
+}
+
+.reveal table.homology-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Each line sits on top of its row (not below the previous one), so it fades
+   in with that row's fragment. Separate borders so they belong to the cells
+   and follow the row's opacity (collapsed borders don't). */
+.reveal table.homology-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.reveal table.homology-table td {
+    border-bottom: none;
+}
+
+.reveal table.homology-table tr + tr td {
+    border-top: var(--hairline, 1px) solid;
+}
+
+/* legend below a figure: <div class="legend"><span><i style="--color: ..."></i>label</span>...</div>
+   (add class "dashed" / "dotted" on the <i> for other line styles, "thin" for a thinner line) */
+.reveal .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3em 1.5em;
+    font-size: 0.7em;
+}
+
+.reveal .legend i {
+    display: inline-block;
+    width: 1.8em;
+    border-top: 4px solid var(--color, currentColor);
+    vertical-align: middle;
+    margin-right: 0.4em;
+}
+
+.reveal .legend i.dashed { border-top-style: dashed; }
+.reveal .legend i.dotted { border-top-style: dotted; }
+.reveal .legend i.thin { border-top-width: 2px; }
+
+/* legend stacked vertically, e.g. to the right of a figure */
+.reveal .legend.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* figure with its legend on its right: <div class="figure-legend-right"><img ...><div class="legend vertical">...</div></div> */
+.reveal .figure-legend-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    width: 100%;
+}
+
+.reveal .figure-legend-right > img {
+    flex-shrink: 0;
+    margin: 0; /* as a direct r-stack child would get, so the slide height is unchanged */
+}
+
+/* wrapper around colN columns to center them vertically with each other */
+.reveal .cols-vcenter {
+    display: flex;
+    align-items: center;
+}
+
+/* wrapper around colN columns to center them horizontally when their widths don't sum to 100%
+   (can be combined with cols-vcenter) */
+.reveal .cols-hcenter {
+    display: flex;
+    justify-content: center;
+}
+
+.reveal .col2 {
+    float: left;
+    width: 50%;
+}
+
+.reveal .col3 {
+    float: left;
+    width: 33%;
+}
+
+.reveal .col32 {
+    float: left;
+    width: 66%;
+}
+
+.reveal .col4 {
+    float: left;
+    width: 25%;
+}
+
+.reveal .col43 {
+    float: left;
+    width: 75%;
+}
+
+.reveal .col5 {
+    float: left;
+    width: 20%;
+}
+
+.reveal .col52 {
+    float: left;
+    width: 40%;
+}
+
+.reveal .col53 {
+    float: left;
+    width: 60%;
+}
+
+.reveal .col54 {
+    float: left;
+    width: 80%;
+}
+
+.reveal .col6 {
+    float: left;
+    width: 16.6%;
+}
+
+/* a lone colN column, centered horizontally on the slide */
+.reveal .col-center {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* note pinned to the bottom of the slide, centered: <p class="footnote"> in a
+   section is moved by js/init.js into .slides (a section is only as tall as its
+   content, floats excluded, and is vertically centered), shown on its slide only */
+.reveal .slides > .footnote {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    font-size: 0.6em;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+
+.reveal .slides > .footnote.visible {
+    opacity: 1;
+}
+
+.reveal .progress {
+    height: 10px;
+}
+
+.reveal .progress .progress-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    margin-left: -3.5px;
+    background: #fff;
+    border: 1px solid #fff;
+    box-sizing: border-box;
+    cursor: pointer;
+    z-index: 11;
+    pointer-events: auto;
+}
+.reveal input[type="range"] {
+    accent-color: var(--c-red);
+}
+
+/* LaTeX-like tabular: vertical rules from <colgroup>s, horizontal rules between
+   <thead>/<tbody> blocks, "cline" = partial rule under a header cell.
+   Rules are drawn on the cells with separate borders (collapsed borders get
+   dropped at some zoom levels, especially next to rowspans); cells starting a
+   new colgroup get the class "rule-left" from js/init.js. */
+.reveal table.results-table {
+    --rule: var(--hairline, 1px) solid;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: var(--rule);
+    font-size: 0.8em;
+}
+
+.reveal table.results-table .rule-left {
+    border-left: var(--rule);
+}
+
+.reveal table.results-table thead + tbody > tr:first-child > *,
+.reveal table.results-table tbody + tbody > tr:first-child > * {
+    border-top: var(--rule);
+}
+
+.reveal table.results-table .cline {
+    border-bottom: var(--rule);
+}
+
+.reveal table.results-table th,
+.reveal table.results-table td {
+    border-bottom: none;
+    padding: 0.1em 0.6em;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: normal;
+}
+
+/* Density estimate slide: points drawn black, then colored by codensity
+   (each circle's own --c) once the slide's empty fragment is shown. */
+.density-points circle {
+    fill: #000;
+}
+.density-color-frag.visible + .density-points circle {
+    fill: var(--c);
+}
+
+/* rows of "label | image | image", labels vertically centered on their images */
+.reveal .label-grid {
+    display: grid;
+    grid-template-columns: auto 30% 30%;
+    align-items: center;
+    justify-content: center;
+    column-gap: 0.5em;
+}
+
+.reveal .label-grid img {
+    width: 100%;
+    margin: 0;
+}
+
+/* module approximation canvases: axis names below and left of the image */
+.reveal .module-axes {
+    display: inline-grid;
+    grid-template-areas: "y plot" ". x";
+    align-items: center;
+    justify-items: center;
+    column-gap: 0.3em;
+    font-size: 22px;
+    line-height: 1.2;
+}
+
+.reveal .module-axes canvas {
+    grid-area: plot;
+}
+
+.reveal .module-axes .x-label {
+    grid-area: x;
+}
+
+.reveal .module-axes .y-label {
+    grid-area: y;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+}
+
+/* chapter title slides: frame around the title and the paper reference,
+   colored from the section's data-marker-color (see js/init.js) */
+.reveal .chapter-frame {
+    background-color: var(--chapter-color);
+    color: white;
+    border-radius: 12px;
+    padding: 0.6em 1em;
+}
+
+.reveal .chapter-frame h1 {
+    color: inherit;
+}
+
+/* fixed-height block between the title and the content, so that the bifiltration
+   point set stays in place across the density / offset / Delaunay slides */
+.reveal .bif-header {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reveal .bif-header p {
+    margin: 0;
+}
+
+/* simple rounded frame around a few lines of text */
+.reveal .frame {
+    border: 2px solid currentColor;
+    border-radius: 12px;
+    padding: 0.3em 0.6em;
+    width: 65%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reveal .frame p {
+    margin: 0.2em 0;
+}
+
+.reveal .simpleframe {
+    border: 2px solid currentColor;
+    border-radius: 12px;
+    padding: 0.3em 0.6em;
+    margin: 0 0.4em;
+}
+
+/* headers pinned to the top of the slide, the rest centered in the space below them
+   (enabled by the "fixed-headers" class on .reveal; positions set in js/init.js) */
+/* .reveal.fixed-headers .slides section > h2:first-child {
+    position: absolute;
+    top: var(--header-top, 0);
+    left: 0;
+    right: 0;
+    margin-top: 0.6em;
+} */
+
+/* videos replacing former GIFs: same vertical margin as the theme gives to img */
+.reveal video {
+    margin: var(--r-block-margin) 0;
+}

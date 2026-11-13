@@ -1,0 +1,2652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>PhD defense</title>
+
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css" />
+  <link rel="stylesheet" href="../reveal.js/dist/theme/serif.css" />
+  <link rel="stylesheet" href="../reveal.js/dist/plugin/highlight/zenburn.css" />
+  <link rel="stylesheet" href="custom.css" />
+
+  <script src="js/plotly-4.0.0.min.js" charset="utf-8"></script>
+  <script src="js/papaparse.min.js"></script>
+
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section>
+        <h1>Accelerated computation of topological descriptors for point cloud analysis</h1>
+        <br>
+        <h2>PhD defense &mdash; Mattéo Clémot</h2>
+        <br>
+        <p>Université Lyon 1, LIRIS</p>
+        <p>Thesis supervised by Julie Digne & Julien Tierny</p>
+        <div>
+          <img src="images/logos/UL1_Logo1-couleur-RVB-120.svg" height=120 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/Logo_liris.png" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/Logo_of_Sorbonne_University.svg" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/lip6.svg" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/erc.png" height=100 />
+        </div>
+      </section>
+
+      <section>
+        <h2>Topology</h2>
+        <p>Study properties of objects that are preserved under <strong>continuous deformations</strong>.</p>
+        <video width=30% src="images/intro/spot_to_sphere.mp4" data-autoplay loop muted playsinline></video>
+        <span class="hspace10"></span>
+        <video width=30% src="images/intro/bob_to_torus.mp4" data-autoplay loop muted playsinline></video>
+        <p class="credit">Models by Keenan Crane</p>
+      </section>
+
+      <section>
+        <h2>Data in practice</h2>
+        <br>
+        <div class="col4">
+          <img src="images/intro/data_0.svg" width="75%">
+          <p>Continuous representation</p>
+        </div>
+        <div class="col4 fragment">
+          <img src="images/intro/data_1.svg" width="75%">
+          <p>Sampling</p>
+        </div>
+        <div class="col4 fragment">
+          <img src="images/intro/data_2.svg" width="75%">
+          <p>Sampling + noise</p>
+        </div>
+        <div class="col4 fragment">
+          <img src="images/intro/data_3.svg" width="75%">
+          <p>Sampling + noise + outliers</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Point cloud examples</h2>
+        <div style="display: flex; align-items: stretch;">
+          <div class="col2 fragment" data-fragment-index="1"
+            style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+            <p><span class="fragment highlight-current-red" data-fragment-index="1">Low-dimensional</span> ($d=3$)</p>
+            <img src="images/intro/col-sfm2.jpg" width=55%>
+            $$\scriptsize\begin{array}{|c|ccc|}
+            \hline
+            & x & y & z \\
+            \hline
+            p_0 & 0.35 & 0.32 & 0.32 \\
+            p_1 & 0.88 & 0.14 & 0.50 \\
+            p_2 & 0.91 & 0.82 & 0.22 \\
+            p_3 & 0.29 & 0.71 & 0.62 \\
+            p_4 & 0.09 & 0.69 & 0.65 \\
+            p_5 & 0.61 & 0.04 & 0.79 \\
+            p_6 & 0.54 & 0.22 & 0.25 \\
+            \vdots & \vdots & \vdots & \vdots \\
+            \hline
+            \end{array}$$
+            <p>a 3-dimensional point cloud acquired by a 3D scanner</p>
+          </div>
+          <div class="col2 fragment" data-fragment-index="2"
+            style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+            <p><span class="fragment highlight-current-red" data-fragment-index="2">High-dimensional</span>
+              ($d=28\times28=784$)</p>
+            <img src="images/TAEpp/MNIST.png" width=60%>
+            $$\scriptsize\begin{array}{|c|cccccc|}
+            \hline
+            & \text{px}_{0,0} & \text{px}_{0,1} & \text{px}_{0,2} & \text{px}_{0,3} & \ldots & \text{px}_{27,27} \\
+            \hline
+            \text{img}_0 & 0.03 & 0.12 & 0.19 & 0.32 & \ldots & 0.49 \\
+            \text{img}_1 & 0.03 & 0.56 & 0.55 & 0.82 & \ldots & 0.99 \\
+            \text{img}_2 & 0.70 & 0.23 & 0.03 & 0.68 & \ldots & 0.76 \\
+            \text{img}_3 & 0.18 & 0.74 & 0.96 & 0.62 & \ldots & 0.60 \\
+            \text{img}_4 & 0.06 & 0.51 & 0.23 & 0.85 & \ldots & 0.80 \\
+            \text{img}_5 & 0.40 & 0.99 & 0.12 & 0.74 & \ldots & 0.29 \\
+            \text{img}_6 & 0.01 & 0.64 & 0.44 & 0.17 & \ldots & 0.50 \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+            \hline
+            \end{array}$$
+            <p>each image is a point in a 784-dimensional space</p>
+          </div>
+        </div>
+        <p style="clear: both; text-align: center;" class="fragment" data-fragment-index="3"><strong>Topological
+            features in point sets?</strong></p>
+        <p class="credit">illustrative values</p>
+      </section>
+
+      <section>
+        <h2>Topological features in <strong>low-dimensional</strong> data</h2>
+        <div class="col2 fragment" data-fragment-index="1">
+          <h4>porous materials ($d=3$)</h4>
+          <img style="margin:0px;" src="images/intro/blobs_pc_zoom.jpg" width=40% />
+          <img style="margin:0px;" src="images/intro/balls_pc_zoom.jpg" width=40% />
+          <img style="margin:0px;" src="images/intro/cylinders_pc_zoom.jpg" width=40% />
+          <img style="margin:0px;" src="images/intro/fractal_pc_zoom.jpg" width=40% />
+        </div>
+        <div class="col2 fragment" data-fragment-index="2">
+          <h4>time series embeddings (e.g., $d=3$)</h4>
+          <div class="r-stack">
+            <div class="fragment fade-in-then-out" data-fragment-index="2">
+              <img src="images/intro/periodic_signal.svg" width=50% style="margin: 0;" />
+              <p><small>$\downarrow$ Takens embedding</small></p>
+              <video width=50% style="margin: 0;" src="images/intro/periodic_takens.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+            <div class="fragment fade-in-then-out" data-fragment-index="3">
+              <img src="images/intro/periodic_noisy_signal.svg" width=50% style="margin: 0;" />
+              <p><small>$\downarrow$ Takens embedding</small></p>
+              <video width=50% style="margin: 0;" src="images/intro/periodic_noisy_takens.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+            <div class="fragment" data-fragment-index="4">
+              <img src="images/intro/multifrequency_signal.svg" width=50% style="margin: 0;" />
+              <p><small>$\downarrow$ Takens embedding</small></p>
+              <video width=50% style="margin: 0;" src="images/intro/multifrequency_takens.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Topological features in <strong>high-dimensional</strong> data</h2>
+          <br>
+          <div class="col3 fragment" data-fragment-index="1">
+            <h4>motion capture ($d=62$)</h4>
+            angles between the bones of a skeleton
+            <div class="vspace1"></div>
+            <div class="r-stack">
+              <img src="images/intro/mocap_run_simple.gif" width=45%>
+              <img src="images/intro/mocap_walk_simple.gif" width=45% class="fragment" data-fragment-index="2">
+            </div>
+          </div>
+          <div class="col3 fragment" data-fragment-index="3">
+            <h4>biology: single-cell omics ($d>1000$)</h4>
+            <p>expression of genes/proteins in a variety of cells at different stages of the cell cycle</p>
+            <img src="images/intro/Cell_Cycle_2.svg" width=40%>
+          </div>
+          <div class="col3 fragment" data-fragment-index="4">
+            <h4>LLMs: token embedding ($d=768$)</h4>
+            <p>vector representations of tokens with cyclic semantics within a context</p>
+            <img src="images/intro/f9-Hx9yBQtko6emWqLJTDdUNaGc.jpg" width=50%>
+          </div>
+          <div style="clear: both;"></div>
+          <div class="col3 fragment" data-fragment-index="1">
+            $$\scriptsize\begin{array}{|c|ccccccc|}
+            \hline
+            & \text{neck}_0 & \text{neck}_1 & \text{neck}_2 & \text{rwrist} & \text{rhand}_0 & \text{rhand}_1 & \ldots
+            \\
+            \hline
+            \text{t}_0 & 0.53 & 0.68 & 0.53 & 0.80 & 0.39 & 0.45 & \ldots \\
+            \text{t}_1 & 0.47 & 0.69 & 0.56 & 0.82 & 0.39 & 0.47 & \ldots \\
+            \text{t}_2 & 0.42 & 0.70 & 0.59 & 0.85 & 0.39 & 0.47 & \ldots \\
+            \text{t}_3 & 0.35 & 0.72 & 0.61 & 0.87 & 0.38 & 0.48 & \ldots \\
+            \text{t}_4 & 0.27 & 0.72 & 0.63 & 0.91 & 0.37 & 0.47 & \ldots \\
+            \text{t}_5 & 0.18 & 0.73 & 0.65 & 0.95 & 0.36 & 0.47 & \ldots \\
+            \text{t}_6 & 0.11 & 0.72 & 0.66 & 0.99 & 0.36 & 0.45 & \ldots \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+            \hline
+            \end{array}$$
+          </div>
+          <div class="col3 fragment" data-fragment-index="3">
+            $$\scriptsize\begin{array}{|c|ccccccc|}
+            \hline
+            & \text{Dppa3} & \text{Aurka} & \text{Enc1} & \text{Hsdl1} & \text{Rhox5} & \text{Abhd4} & \ldots \\
+            \hline
+            \text{cell}_0 & 0.12 & 0.77 & 0.61 & 0.17 & 0.38 & 0.54 & \ldots \\
+            \text{cell}_1 & 0.09 & 0.19 & 0.40 & 0.96 & 0.56 & 0.41 & \ldots \\
+            \text{cell}_2 & 0.17 & 0.69 & 0.73 & 0.82 & 0.72 & 0.71 & \ldots \\
+            \text{cell}_3 & 0.04 & 0.63 & 0.33 & 0.76 & 0.50 & 0.81 & \ldots \\
+            \text{cell}_4 & 0.47 & 0.84 & 0.92 & 0.67 & 0.91 & 0.18 & \ldots \\
+            \text{cell}_5 & 0.73 & 0.38 & 0.19 & 0.07 & 0.48 & 0.14 & \ldots \\
+            \text{cell}_6 & 0.29 & 0.56 & 0.51 & 0.61 & 0.93 & 0.02 & \ldots \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+            \hline
+            \end{array}$$
+          </div>
+          <div class="col3 fragment" data-fragment-index="4">
+            $$\scriptsize\begin{array}{|c|ccccccc|}
+            \hline
+            & e_0 & e_1 & e_2 & e_3 & e_4 & e_5 & \ldots \\
+            \hline
+            \text{token}_0 & 0.32 & 0.15 & 0.65 & 0.07 & 0.54 & 0.37 & \ldots \\
+            \text{token}_1 & 0.06 & 0.51 & 0.04 & 0.43 & 0.07 & 0.09 & \ldots \\
+            \text{token}_2 & 0.42 & 0.83 & 0.12 & 0.22 & 0.63 & 0.95 & \ldots \\
+            \text{token}_3 & 0.58 & 0.40 & 0.98 & 0.05 & 0.86 & 0.29 & \ldots \\
+            \text{token}_4 & 0.14 & 0.12 & 0.31 & 0.82 & 0.18 & 0.58 & \ldots \\
+            \text{token}_5 & 0.64 & 0.37 & 0.55 & 0.06 & 0.06 & 0.21 & \ldots \\
+            \text{token}_6 & 0.68 & 0.43 & 0.31 & 0.59 & 0.45 & 0.30 & \ldots \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+            \hline
+            \end{array}$$
+          </div>
+          <p class="credit">illustrative values</p>
+        </section>
+        <section>
+          <h2>Topological features in data: some examples in <strong>high dimension</strong></h2>
+          <div style="float: left; width:1%">
+            <div style="height: 500px; display: flex; align-items: center; justify-content: center;">
+              <small
+                style="writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;">phenomenon</small>
+            </div>
+            <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+              <small style="writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;">low-dimensional
+                representation</small>
+            </div>
+          </div>
+          <div class="col3">
+            <h4>motion capture ($d=62$)</h4>
+            angles between the bones of a skeleton
+            <div class="r-stack">
+              <video width=70% src="images/intro/mocap_walk.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+          </div>
+          <div class="col3">
+            <h4>biology: single-cell omics ($d>1000$)</h4>
+            <p>expression of genes/proteins in a variety of cells at different stages of the cell cycle</p>
+            <img src="images/intro/Cell_Cycle_2.svg" width=40%>
+            <img src="images/intro/main.NeuroHipp.panelA.jpg" width=70%>
+            <p class="loccredit">[Zheng et al., 2022]</p>
+          </div>
+          <div class="col3">
+            <h4>LLMs: token embedding ($d=768$)</h4>
+            <p>vector representations of tokens with cyclic semantics within a context</p>
+            <img src="images/intro/f9-Hx9yBQtko6emWqLJTDdUNaGc.jpg" width=50%>
+            <div class="vspace1"></div>
+            <img src="images/intro/gpt2nonlinears.jpg" width=50%>
+            <p class="loccredit">[Engels et al., 2025]</p>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Topological data analysis</h2>
+        <br>
+        <div class="col-center col43">
+          <ul>
+            <li>Tools from algebraic topology to identify and quantify topological and geometric
+              patterns in data</li>
+            <li><b>Problem</b>: these algorithms are often computationally intensive (runtime, memory).</li>
+          </ul>
+          <p>
+            $\longrightarrow$ <b>we aim to accelerate them to improve their usability in
+              applications</b>
+          </p>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Homology</h2>
+        <p>describes <strong>holes</strong> in topological spaces.</p>
+        <table class="homology-table">
+          <tr>
+            <td>$X$</td>
+            <td><img src="images/intro/Blobs.svg" width=250px /></td>
+            <td><img src="images/intro/Cycle.svg" width=250px /></td>
+            <td><img src="images/intro/Sphere.png" width=250px /></td>
+            <td><img src="images/intro/Torus.png" width=250px /></td>
+            <!-- <td><img src="images/intro/Bitorus.png" width=150px /></td> -->
+            <td></td>
+          </tr>
+          <tr class="fragment">
+            <td>$\betti{0}(X)$</td>
+            <td>3</td>
+            <td>1</td>
+            <td>1</td>
+            <td>1</td>
+            <!-- <td>1</td> -->
+            <td>connected components</td>
+          </tr>
+          <tr class="fragment">
+            <td>$\betti{1}(X)$</td>
+            <td>0</td>
+            <td>1</td>
+            <td>0</td>
+            <td>2</td>
+            <!-- <td>4</td> -->
+            <td>loops/cycles</td>
+          </tr>
+          <tr class="fragment">
+            <td>$\betti{2}(X)$</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>1</td>
+            <!-- <td>1</td> -->
+            <td>cavities/voids</td>
+          </tr>
+        </table>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Homology</h2>
+        <p>describes <strong>holes</strong> in topological spaces.</p>
+        <table class="homology-table">
+          <tr>
+            <td>$X$</td>
+            <td><img src="images/intro/Blobs.svg" width=250px /></td>
+            <td><img src="images/intro/Cycle.svg" width=250px /></td>
+            <td><img src="images/intro/Sphere.png" width=250px /></td>
+            <td><img src="images/intro/Torus.png" width=250px /></td>
+            <td><img src="images/SLF/normal_pc.svg" width=250px /></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>$\betti{0}(X)$</td>
+            <td>3</td>
+            <td>1</td>
+            <td>1</td>
+            <td>1</td>
+            <td>26</td>
+            <td>connected components</td>
+          </tr>
+          <tr>
+            <td>$\betti{1}(X)$</td>
+            <td>0</td>
+            <td>1</td>
+            <td>0</td>
+            <td>2</td>
+            <td>0</td>
+            <td>loops/cycles</td>
+          </tr>
+          <tr>
+            <td>$\betti{2}(X)$</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>1</td>
+            <td>0</td>
+            <td>cavities/voids</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>Persistent homology (PH)</h2>
+        <p>Consider the homology of an increasing sequence of topological spaces: <i>filtrations</i>.</p>
+        <br>
+        <div class="vspace1"></div>
+        <div class="fragment col3" data-fragment-index="0">
+          <b>Offset filtration</b>: $\offsetf{r}(\pc) = \bigcup_{x\in\pc}\ball_r(x)$
+          <div class="vspace1"></div>
+          <div class="rips-wrap">
+            <svg id="offset-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            <div class="vspace1"></div>
+            <div class="rips-controls fragment fade-out" data-fragment-index="1">
+              <label for="offset-slider">radius $r$</label>
+              <input type="range" id="offset-slider" min="0" max="0.3" step="0.001" value="0">
+              <span id="offset-r-value">0.000</span>
+            </div>
+          </div>
+        </div>
+        <div class="fragment col3" data-fragment-index="1">
+          <b>Rips filtration</b>: $\ripsf{r}(\pc) = \left\{\sigma\subset\pc\mid\delta(\sigma)\leq2r\right\}$
+          <div class="vspace1"></div>
+          <div class="rips-wrap">
+            <svg id="rips-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            <div class="vspace1"></div>
+            <div class="rips-controls">
+              <label for="rips-slider">radius $r$</label>
+              <input type="range" id="rips-slider" min="0" max="0.3" step="0.001" value="0">
+              <span id="rips-r-value">0.000</span>
+            </div>
+          </div>
+        </div>
+        <div class="fragment col3" data-fragment-index="2">
+          <div class="vspace5"></div>
+          <h4>How to choose radius $r$?</h4>
+          <div class="fragment" data-fragment-index="3">
+            <div class="vspace2"></div>
+            $\longrightarrow$ represent the lifetime of topological features with <i>birth</i> and <i>death</i> times
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Persistence diagram</h2>
+        <br>
+        <div>
+          <div class="col2">
+            <svg id="rips-pd-complex-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+          </div>
+          <div class="col2">
+            <svg id="rips-pd-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+          </div>
+          radius $r$ = <span id="rips-pd-r-value">0.000</span>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Persistence diagram</h2>
+        <br>
+        <div class="r-stack">
+          <img class="fragment fade-out" data-fragment-index="0" src="images/intro/diagram_interpret.svg" width="86%">
+          <img class="fragment fade-in-then-out" data-fragment-index="0" src="images/intro/diagram_interpret_dg0.svg"
+            width="86%">
+          <img class="fragment fade-in-then-out" data-fragment-index="1" src="images/intro/diagram_interpret_dg1a.svg"
+            width="86%">
+          <img class="fragment fade-in-then-out" data-fragment-index="2" src="images/intro/diagram_interpret_dg1b.svg"
+            width="86%">
+          <img class="fragment fade-in" data-fragment-index="3" src="images/intro/diagram_interpret_dg1c.svg"
+            width="86%">
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Comparing persistence diagrams</h2>
+          <p>Use metrics from optimal transport: <strong><span class="fragment fade-out swap-out"
+                data-fragment-index="0">Wasserstein distance</span><span class="fragment fade-in swap-in"
+                data-fragment-index="0">bottleneck distance</span></strong>.</p>
+          <div class="r-stack">
+            <p class="fragment fade-out" data-fragment-index="0">
+              \[\calw_q^p(D,D')=\min\limits_{\psi:\augmented{D}\bijection\augmented{D'}}\left(\sum\limits_{x\in\augmented{D}}c_p\bigl(x,\psi(x)\bigr)^q\right)^{1/q}.\]
+            </p>
+            <p class="fragment fade-in" data-fragment-index="0">
+              \[\bottle(D,D')=\min\limits_{\psi:\augmented{D}\bijection\augmented{D'}}\max\limits_{x\in\augmented{D}}c_\infty\bigl(x,\psi(x)\bigr).\]
+            </p>
+          </div>
+          <img src="images/intro/point_sets.svg" width=30%>
+          <div class="hspace10"></div>
+          <img src="images/intro/bottleneck.svg" width=30%>
+        </section>
+        <section>
+          <h2>Persistence modules and interleavings</h2>
+          <br>
+          <div class="col32 col-center">
+            Two persistence modules $\bbv=(V_r)_{r\geq0}$ and $\bbw=(W_r)_{r\geq0}$ are $\varepsilon$-interleaved if
+            there are $\phi_r:V_r\rightarrow W_{r+\varepsilon}$ and $\psi_r:W_r\rightarrow V_{r+\varepsilon}$ for all
+            $r\geq0$, such that the following diagrams commute for all $r\leq r'$:
+          </div>
+          <img src="images/intro/commutative_diags.svg" width=40%>
+          <blockquote class="definition">
+            <div class="block-title">Interleaving distance (extended pseudometric between persistence modules)</div>
+            \[\interl(\bbv,\bbw) = \inf\{\varepsilon\geq0\mid\text{$\bbv$ and $\bbw$ are $\varepsilon$-interleaved}\}\]
+          </blockquote>
+          <blockquote class="theorem">
+            <div class="block-title">Isometry theorem [Lesnick, 2015]</div>
+            For p.f.d. persistence modules $\bbv$ and $\bbw$: \[\bottle\bigl(\dgm{}(\bbv),
+            \dgm{}(\bbw)\bigr)=\interl(\bbv,\bbw)\]
+          </blockquote>
+        </section>
+        <section>
+          <h2>Persistence modules and interleavings</h2>
+          <div class="cols-vcenter">
+            <div class="col5">
+              <h4>Additive<br>interleaving</h4>
+            </div>
+            <div class="col54">
+              <img src="images/intro/interleaving.svg" width="80%">
+            </div>
+          </div>
+          <div class="cols-vcenter">
+            <div class="col5">
+              <h4>Multiplicative interleaving</h4>
+            </div>
+            <div class="col54">
+              <img src="images/intro/interleaving.png" width="80%">
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section data-visibility="hidden">
+        <h2>Persistence diagram: robustness to perturbations</h2>
+        <img src="images/intro/noise_pc.gif" width=30%>
+        <div class="hspace10"></div>
+        <img src="images/intro/noise_pd.gif" width=30%>
+        <!-- <blockquote class="fragment theorem">
+          <div class="block-title">Stability theorem [CDO14]</div>
+          For any point clouds $X,Y\subset\bbr^d$ and any $\hdim\geq0$:
+          \[\bottle\bigl(\dgmrips{\hdim}(X),\dgmrips{\hdim}(Y)\bigr)\leq2\hausdo(X,Y).\]
+        </blockquote> -->
+      </section>
+
+      <section data-auto-animate>
+        <h2>Contributions of the thesis</h2>
+        <br>
+        <div class="fragment col3">
+          <h4>Use PH in the context of<br>dimensionality reduction</h4>
+          <p>Cycle-aware dimensionality reduction</p>
+        </div>
+        <div class="fragment col3">
+          <h4>Speed up PH in low-dimensional settings</h4>
+          <p>Rips persistence for planar point sets</p>
+          <p>Delaunay&ndash;Rips persistence</p>
+        </div>
+        <div class="fragment col3">
+          <h4>Speed up 2-parameter PH</h4>
+          <p>Sublevel Flood bifiltration</p>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Contributions of the thesis</h2>
+        <br>
+        <div class="col3">
+          <p>[CDT25a] (IEEE TVCG)</p>
+          <p style="color: var(--c-red);">Cycle-aware dimensionality reduction</p>
+          <p style="color: var(--c-red);">Rips persistence for planar point sets</p>
+        </div>
+        <div class="col3">
+          <p>[CDT25b] (preprint, submitted)</p>
+          <p style="color: var(--c-blue);">Delaunay&ndash;Rips persistence</p>
+        </div>
+        <div class="col3">
+          <p>[CDT26] (NeurIPS)</p>
+          <p style="color: var(--c-green);">Sublevel Flood bifiltration</p>
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+      <section data-chapter="Cycle-aware dimensionality reduction" data-marker-color=#cf244b>
+        <div class="chapter-frame">
+          <h1>Cycle-aware dimensionality reduction</h1>
+          <p>Clémot, Digne, Tierny, "Topological Autoencoders++: Fast and accurate cycle-aware dimensionality
+            reduction",
+            IEEE TVCG, 2026</p>
+        </div>
+        <div class="vspace2"></div>
+        <ul>
+          <li>to be presented at IEEE VIS 2026</li>
+          <li>Graphics Replicability Stamp
+            <img src="images/logos/grsi_alpha.png" width=25px style="margin:0; vertical-align:baseline;" />
+          </li>
+          <li>integrated into TTK</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Dimensionality reduction</h2>
+        <br>
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <img src="images/TAEpp/MNIST.png" width=35%>
+          <span class="hspace10">$\longrightarrow$</span>
+          <img src="images/TAEpp/MNIST_dim2.png" width=25%>
+        </div>
+      </section>
+
+      <section>
+        <h2>Dimensionality reduction: preserving cycles</h2>
+        <br>
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <img src="images/TAEpp/coil-1.png" width=30%>
+          <span class="hspace10">$\longrightarrow$</span>
+          <img src="images/TAEpp/COIL20_dim2.png" width=25%>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Autoencoders with topological constraints</h2>
+        <br>
+        <div class="cols-hcenter">
+          <div class="col2">
+            <img src="images/TAEpp/TAE.svg" width=100% />
+          </div>
+          <div class="fragment col5">
+            <div class="vspace2"></div>
+            <p>Reconstruction loss function:</p>
+            \[\call_r=\|\widetilde{\pc}-\pc\|^2\]
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Autoencoders with topological constraints</h2>
+        <br>
+        <div class="col2">
+          <img src="images/TAEpp/TAE.svg" width=100% />
+        </div>
+
+        <div class="col2">
+          <div class="r-stack">
+            <div class="fragment fade-out" data-fragment-index="0" style="width:100%;margin:0;">
+              <p>
+                First idea: match persistence diagrams
+                <span class="loccredit">[Carrière et al., 2021]</span>
+                \[
+                \mathcal{L}_t=\sum_{\hdim\in\{0,1\}}\calw_2\bigl(\dgmrips{\hdim}(\pc),\dgmrips{\hdim}(\lpc)\bigr).
+                \]
+                $\rightarrow$ loses information on simplices involved in the cycles.
+              </p>
+            </div>
+
+            <div class="fragment fade-in-then-out" data-fragment-index="0" style="width:100%;margin:0;">
+              <p>
+                <i>Topological Autoencoders</i> <span class="loccredit">[Moor et al., 2020]</span>:
+                \[
+                \begin{split}
+                \mathcal{L}_t=\ltopoae{\hdim}=
+                &\|A^\pc[\critical{\hdim}(\pc)]-A^\lpc[\critical{\hdim}(\pc)]\|_2^2 +\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+                where $\critical{\hdim}(\pc)$ are the <em>critical</em> edges of $\pc$<br> (create/destroy a positive
+                $\PH{q}$ class, $q\leq\hdim$).
+              </p>
+            </div>
+
+            <div class="fragment fade-in" data-fragment-index="1" style="width:100%;margin:0;">
+              <p>
+                In practice, in <span class="loccredit">[Moor et al., 2020]</span>, $\hdim=0$:
+                <!-- \[
+                \begin{split}
+                \mathcal{L}_t=\ltopoae{0}=
+                &\|A^\pc[\mst(\pc)]-A^\lpc[\mst(\pc)]\|_2^2+\\
+                &\|A^\lpc[\mst(\lpc)]-A^\pc[\mst(\lpc)]\|_2^2
+                \end{split}
+                \] -->
+                \[
+                \begin{split}
+                \mathcal{L}_t=\ltopoae{0}=
+                &\|A^\pc[\critical{0}(\pc)]-A^\lpc[\critical{0}(\pc)]\|_2^2+\\
+                &\|A^\lpc[\critical{0}(\lpc)]-A^\pc[\critical{0}(\lpc)]\|_2^2
+                \end{split}
+                \]
+                $\rightarrow$ favors preservation of connected components.
+              </p>
+            </div>
+          </div>
+          <div class="r-stack">
+            <div class="fragment fade-in-then-out figure-legend-right" data-fragment-index="0">
+              <img src="images/TAEpp/tae1.svg" width="60%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death</span>
+                <span><i style="--color: var(--c-red)"></i>$\PH{1}$ birth</span>
+                <span><i style="--color: var(--c-blue)"></i>$\PH{1}$ death</span>
+              </div>
+            </div>
+            <div class="fragment fade-in figure-legend-right" data-fragment-index="1">
+              <img src="images/TAEpp/tae0.svg" width="60%">
+              <div class="legend vertical">
+                <span><i style="--color: black"></i>$\PH{0}$ death</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Properties</h2>
+        <br>
+        <div class="col43 col-center">
+          <blockquote class="theorem" data-id="block-tae-bound">
+            <div class="block-title">TAE upper-bounds the Wasserstein distance [Clémot et al., 2025a]</div>
+            For any point clouds $\pc$ and $\lpc$ of equal size:
+            \[\calw_2\bigl(\dgmrips{0}(\pc),\dgmrips{0}(\lpc)\bigr)^2\leq\ltopoae{0}(\pc,\lpc).\]
+          </blockquote>
+          <br>
+          If $\ltopoae{0}(\pc,\lpc)=0$, then $\dgmrips{0}(\pc)=\dgmrips{0}(\lpc)$
+          (and under general position<br> assumption, the $\PH{0}$ pairs are the same, i.e., $\mst(\pc)=\mst(\lpc)$).
+        </div>
+      </section>
+
+      <section>
+        <section data-auto-animate>
+          <h2>However</h2>
+          <br>
+          <div class="col2">
+            <blockquote class="theorem" data-id="block-tae-bound">
+              <div class="block-title">TAE versus Wasserstein [Clémot et al., 2025a]</div>
+              For any point clouds $\pc$ and $\lpc$ of equal size:
+              \[\calw_2\bigl(\dgmrips{0}(\pc),\dgmrips{0}(\lpc)\bigr)^2\leq\ltopoae{0}(\pc,\lpc).\]
+            </blockquote>
+            <!-- \[
+            \ltopoae{0}(\pc,\lpc)=0 \implies\dgmrips{0}(\pc)=\dgmrips{0}(\lpc)
+            \] -->
+            <br>
+            but
+            \[
+            \ltopoae{1}(\pc,\lpc)=0 \nRightarrow\left\{
+            \begin{array}{l}
+            \dgmrips{0}(\pc)=\dgmrips{0}(\lpc)\\
+            \dgmrips{1}(\pc)=\dgmrips{1}(\lpc)
+            \end{array}
+            \right.
+            \]
+          </div>
+          <div class="col6">
+            <div id="plot-however" style="width:300px;height:400px;margin:auto;"></div>
+          </div>
+          <div class="col3">
+            <img src="images/TAEpp/ltae.svg" width=100%>
+          </div>
+        </section>
+        <section>
+          <h2>Counter-example</h2>
+          <br>
+          <div class="cols-vcenter cols-hcenter">
+            $Z=\begin{bmatrix}
+            1 & 0 \\
+            0.5 & 0.866 \\
+            -0.48 & 0.667 \\
+            -0.98 &-0.199 \\
+            -0.48 &-1.065 \\
+            0.5 &-0.866
+            \end{bmatrix}$
+            <span class="hspace5"></span>
+            <img src="images/TAEpp/counter-example.svg" width=50%>
+            <span class="hspace5"></span>
+            $X=
+            \begin{bmatrix}
+            1 & 0 & 0 \\
+            0.5 & 0.866 & 0 \\
+            -0.48 & 0.667 & 0 \\
+            -0.73 & -0.199 & 0.433 \\
+            -0.48 & -1.065 & 0 \\
+            0.5 & -0.866 & 0
+            \end{bmatrix}$
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <section>
+          <h2>Cascade distortion</h2>
+          <br>
+          <div class="cols-vcenter cols-hcenter">
+            <div class="col2">
+              <b>Idea:</b> constrain the lengths of more edges to favor an isometric embedding of 2-chains filling the
+              1-cycles.
+              <br>
+              <br>
+              $\longrightarrow$ take all edges appearing in the <i>persistent cascade</i>
+              \[\critical{\hdim}(\pc)\subset\skelcasc^\hdim(\pc)\]
+            </div>
+            <div class="col4">
+              <p>\[\critical{1}(\pc)\]</p>
+              <video width=50% src="images/TAEpp/tae_orbit.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+            <div class="col4">
+              <p>\[\skelcasc^1(\pc)\]</p>
+              <video width=50% src="images/TAEpp/cascade_orbit.mp4" data-autoplay loop muted playsinline></video>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Cascade distortion</h2>
+          <br>
+          <img src="images/TAEpp/eliminateBoundaries.svg" width=100%>
+        </section>
+      </section>
+
+      <section>
+        <h2>Topological autoencoders, with CD</h2>
+        <br>
+        <div class="col2">
+          <img src="images/TAEpp/TAE.svg" width=100% />
+        </div>
+
+        <div style="float:left;width:50%;">
+          <div class="r-stack">
+            <div class="fragment fade-out" data-fragment-index="0" style="width:100%;margin:0;">
+              <p>
+                Original formulation:
+                \[
+                \begin{split}
+                \ltopoae{\hdim}=
+                &\|A^\pc[\critical{\hdim}(\pc)]-A^\lpc[\critical{\hdim}(\pc)]\|_2^2 +\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              </p>
+            </div>
+
+            <div class="fragment fade-in" data-fragment-index="0" style="width:100%;margin:0;">
+              <p>
+                Formulation with the <em>cascade distortion</em>:
+                \[
+                \begin{split}
+                \lcascae{\hdim}(\pc,\lpc)=
+                &\|A^\pc[\skelcasc^\hdim(\pc)]-A^\lpc[\skelcasc^\hdim(\pc)]\|_2^2+\\
+                &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+                \end{split}
+                \]
+              </p>
+            </div>
+          </div>
+          <div class="r-stack">
+            <img class="fragment fade-out" data-fragment-index="0" src="images/TAEpp/tae1.svg" width="60%">
+            <img class="fragment fade-in" data-fragment-index="0" src="images/TAEpp/cd1.svg" width="60%">
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Results</h2>
+          <br>
+          <img src="images/TAEpp/results_real.png" width=80%>
+        </section>
+        <section>
+          <h2>Results (synthetic)</h2>
+          <br>
+          <img src="images/TAEpp/results_synthetic.png" width=80%>
+        </section>
+        <section>
+          <h2>Results (non-planar)</h2>
+          <br>
+          <img src="images/TAEpp/results_k5.png" width=80%>
+        </section>
+        <section>
+          <div class="cols-vcenter">
+            <div class="col2">
+              <h2>Results (quantitative)</h2>
+            </div>
+            <div class="col2">
+              <img src="images/TAEpp/results_quantitative.png" width=80%>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Topological autoencoders, with CD</h2>
+        <br>
+        <div class="col2">
+          <img src="images/TAEpp/TAE.svg" width=100% />
+          <div>
+            <ul>
+              <li class="fragment">at each iteration, compute $\PH{}(Z)$, with $Z\subset\bbr^2$
+              </li>
+              <li class="fragment"><b>we introduce a dedicated algorithm for this part</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col2">
+          <p>
+            Formulation with the <em>cascade distortion</em>:
+            \[
+            \begin{split}
+            \lcascae{\hdim}(\pc,\lpc)=
+            &\|A^\pc[\skelcasc^\hdim(\pc)]-A^\lpc[\skelcasc^\hdim(\pc)]\|_2^2+\\
+            &\|A^\lpc[\critical{\hdim}(\lpc)]-A^\pc[\critical{\hdim}(\lpc)]\|_2^2
+            \end{split}
+            \]
+          </p>
+          <img src="images/TAEpp/cd1.svg" width="60%">
+        </div>
+      </section>
+
+
+      <section>
+        <h2>Faster planar Rips persistence</h2>
+      </section>
+
+      <section data-visibility="hidden">
+        <h2>Geometric graphs</h2>
+        <div class="cols-vcenter">
+          <div class="col2">
+            <p><i>Relative neighborhood graph</i> ($\rng$) <span class="loccredit">[Toussaint, 1980]</span>:</p>
+            <ul>
+              <li>edges with an empty <i>lens</i></li>
+              <li>in the plane, can be computed from the Delaunay triangulation</li>
+              <li>$\mst(\pc)\subseteq\rng(\pc)\subseteq\del(\pc)$.</li>
+            </ul>
+          </div>
+          <div class="col2">
+            <img src="images/TAEpp/algo/geo_graphs_noUG.svg" width=60%>
+            <div class="legend">
+              <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+              <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+              <span><i style="--color: gray" class="thin"></i>$\del\setminus\rng$</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-visibility="hidden">
+        <h2>Minmax length triangulations</h2>
+        <div class="cols-vcenter">
+          <div class="col2">
+            <p><i>Minmax length triangulations</i> ($\mml$):</p>
+            <ul>
+              <li>any triangulation minimizing its longest edge</li>
+              <li>in general, the Delaunay triangulation is not $\mml$</li>
+              <li>can be computed in quadratic time, finding an $\mml$-triangulation in each polygon <span
+                  class="loccredit">[Edelsbrunner et al., 1993]</span></li>
+            </ul>
+          </div>
+          <div class="col2">
+            <img src="images/TAEpp/algo/mml_graphs.svg" width=60%>
+            <div class="legend">
+              <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+              <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+              <span><i style="--color: gray" class="thin"></i>$\mml$</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Tools</h2>
+          <br>
+          <div class="col2">
+            <h4>Relative neighborhood graph ($\rng$)</h4>
+            <span class="loccredit">[Toussaint, 1980]</span>
+            <span class="vspace1"></span>
+            <ul>
+              <li>edges with an empty <i>lens</i></li>
+              <li>in the plane, can be computed from the Delaunay triangulation</li>
+              <li>$\mst(\pc)\subseteq\rng(\pc)\subseteq\del(\pc)$</li>
+            </ul>
+          </div>
+          <div class="col2 fragment" data-fragment-index="1">
+            <h4>Minmax length triangulations ($\mml$)</h4>
+            <span class="loccredit">[Edelsbrunner et al., 1993]</span>
+            <span class="vspace1"></span>
+            <ul>
+              <li>any triangulation minimizing its longest edge</li>
+              <li>in general, the Delaunay triangulation is not $\mml$</li>
+              <li>can be computed in quadratic time (solve in each polygon)</li>
+            </ul>
+          </div>
+          <div style="clear: both;"></div>
+          <div class="col2">
+            <span class="vspace1"></span>
+            <img src="images/TAEpp/algo/geo_graphs_noUG.svg" width=45%>
+            <div class="legend">
+              <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+              <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+              <span><i style="--color: gray" class="thin"></i>$\del\setminus\ug$</span>
+            </div>
+          </div>
+          <div class="col2 fragment" data-fragment-index="1">
+            <span class="vspace1"></span>
+            <img src="images/TAEpp/algo/mml_graphs.svg" width=45%>
+            <div class="legend">
+              <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+              <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+              <span><i style="--color: gray" class="thin"></i>$\mml$</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Geometric graphs</h2>
+          <div class="cols-vcenter">
+            <div class="col2">
+              <p><i>Relative neighborhood graph</i> ($\rng$) <span class="loccredit">[Toussaint, 1980]</span>:</p>
+              <ul>
+                <li>edges with an empty <i>lens</i></li>
+                <li>in the plane, can be computed from the Delaunay triangulation</li>
+              </ul>
+              <span class="vspace2"></span>
+              <p><i>Urquhart graph</i> ($\ug$) <span class="loccredit">[Urquhart, 1980]</span>:</p>
+              <ul>
+                <li>edges whose link in the Delaunay triangulation is not its lens</li>
+              </ul>
+              <span class="vspace2"></span>
+              \[\mst(\pc)\subseteq\rng(\pc)\subseteq\ug(\pc)\subseteq\del(\pc)\]
+            </div>
+            <div class="col2">
+              <img src="images/TAEpp/algo/geo_graphs.svg" width=60%>
+              <div class="legend">
+                <span><i style="--color: var(--c-red)"></i>$\mst$</span>
+                <span><i style="--color: #d5a718"></i>$\rng\setminus\mst$</span>
+                <span><i style="--color: #d5a718" class="dashed"></i>$\ug\setminus\rng$</span>
+                <span><i style="--color: gray" class="thin"></i>$\del\setminus\ug$</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Minmax length triangulations</h2>
+          <br>
+          <div class="cols-vcenter">
+            <div class="col2">
+              <ul>
+                <li>Several types of edges:
+                  <ul>
+                    <li>2-edge: both half-lenses non-empty</li>
+                    <li>1-edge: exactly one half-lens empty</li>
+                    <li>$\rng$-edge: full lens is empty</li>
+                  </ul>
+                </li>
+                <li><i>expandable</i> 2-edge (see $v_1v_2$ in drawing): can be expanded as a triangulation of which it
+                  is the longest edge</li>
+                <li><b>2-edge lemma</b>: inside a $\rng$-polygon, the optimal value for $\mml$ is the <b>shortest
+                    expandable 2-edge</b></li>
+              </ul>
+            </div>
+            <div class="col2">
+              <img src="images/TAEpp/algo/expandable.svg" width="60%">
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Geometric graphs and Rips PH</h2>
+        <br>
+        <ul>
+          <li>$\mst$ edges are the ones killing $\PH{0}$ classes</li>
+          <li class="fragment">$\rng\setminus\mst$ edges are the ones creating positive $\PH{1}$ classes <span
+              class="loccredit">[Koyama et al., 2024]</span></li>
+          <!-- <li class="fragment">In the plane, edges killing $\PH{1}$ classes are the longest edges of the $\mml$ triangulations of each
+            $\rng$-polygon</li> -->
+        </ul>
+        <div class="col32 col-center">
+          <blockquote class="fragment theorem">
+            <div class="block-title">Characterization of cycle-killing edges [Clémot et al., 2025a]</div>
+            In the plane, edges killing positive $\PH{1}$ classes are the longest edges of the $\mml$ triangulations of
+            each
+            $\rng$-polygon.
+          </blockquote>
+        </div>
+        <div class="vspace1"></div>
+        <img src="images/TAEpp/algo/PD_geometry+CH.svg" width=50%>
+      </section>
+
+      <section>
+        <h2>Runtime</h2>
+        <br>
+        <p>Use the geometric characterization of cycle-killing edges.</p>
+        <div class="cols-vcenter">
+          <div class="col32">
+            <img src="images/TAEpp/benchmark_uniform.svg" width=49%>
+            <img src="images/TAEpp/benchmark_ring.svg" width=49%>
+          </div>
+          <div class="col3">
+            <small>
+              <p>Comparison with:</p>
+              <ul>
+                <li>Gudhi (generic) <span class="loccredit">[Maria et al., 2014]</span></li>
+                <li>Ripser (Rips) <span class="loccredit">[Bauer, 2021]</span></li>
+                <li>Euclidean PH1 (Rips, low dimension) <span class="loccredit">[Koyama et al., 2024]</span>
+                </li>
+              </ul>
+            </small>
+          </div>
+        </div>
+
+        <p class="fragment">$\longrightarrow$ acceleration of the overall dimensionality reduction approach.</p>
+      </section>
+
+      <section>
+        <section>
+          <h2>Limitations and further work</h2>
+          <br>
+          <div>
+            <ul>
+              <li>Initial PH computation: limits the size of the input</li>
+              <li class="fragment" data-fragment-index="0">Stochastic optimization: runs may get stuck in bad local
+                minima
+              </li>
+            </ul>
+          </div>
+        </section>
+        <section>
+          <h2>Penalization of generator self-crossings</h2>
+          <br>
+          <div class="col32 col-center">
+            <img src="images/TAEpp/noSC.svg" width=49%>
+            <img src="images/TAEpp/withSC.svg" width=49%>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Integration into the Topology ToolKit (TTK)</h2>
+        <br>
+        <div class="cols-vcenter">
+          <div class="col43">
+            <img src="images/topologicalAutoEncoderPlusPlus.jpg" width=100%>
+            <p>
+              <small>example available online: <a
+                  href="https://topology-tool-kit.github.io/examples/topoAEppTeaser/">https://topology-tool-kit.github.io/examples/topoAEppTeaser</a>
+              </small>
+            </p>
+          </div>
+          <div class="col4">
+            <ul>
+              <li>an open-source library for topological data analysis and visualization</li>
+              <li>written in C++</li>
+              <li>Python interface</li>
+              <li>ParaView plugin (open-source scientific visualization software)</li>
+            </ul>
+            <img src="images/logos/ttk.png" width=25% />
+            <br>
+            <img src="images/logos/ParaView-Logo.svg" width=100% />
+          </div>
+        </div>
+      </section>
+
+      <section data-background="images/topologicalAutoEncoderPlusPlus.jpg" data-visibility="hidden">
+        <h3 style="color:white; background-color: #ffffff66; padding-bottom: 10px;">Cycle-aware dimensionality reduction
+          TTK example</h3>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+      <section data-chapter="Delaunay&ndash;Rips filtration" data-marker-color=#493df5>
+        <div class="chapter-frame">
+          <h1>Delaunay&ndash;Rips filtration</h1>
+          <p>Clémot, Digne, Tierny, "Delaunay&ndash;Rips filtration: a study and an algorithm", preprint, 2025,
+            submitted
+          </p>
+        </div>
+        <div class="vspace2"></div>
+        <ul>
+          <li>integrated into TTK</li>
+          <li>available as a Python package</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Motivation</h2>
+        <br>
+        <div>
+          <div class="fragment col3" data-fragment-index="0">
+            <h4><b style="color: var(--c-red);">Rips</b> filtration:</h4>
+            <ul>
+              <li>$\calo(2^n)$ simplices in total, $\calo(n^3)$ for the 2-skeleton</li>
+              <li>despite parallel implementations (CPU / GPU), still very expensive (time and memory)</li>
+            </ul>
+          </div>
+          <div class="fragment col3" data-fragment-index="1">
+            <h4><b style="color: var(--c-green);">Delaunay&ndash;Čech</b> filtration:</h4>
+            <ul>
+              <li>restriction to the Delaunay complex: far fewer simplices, but low dimensionality only
+                ($\ddim\lesssim10$)</li>
+            </ul>
+          </div>
+          <div class="fragment col3" data-fragment-index="2">
+            <h4><b style="color: var(--c-blue);">Delaunay&ndash;Rips</b> filtration:</h4>
+            <ul>
+              <li>restriction to the Delaunay complex: far fewer simplices, but low dimensionality only
+                ($\ddim\lesssim10$)</li>
+              <li>unstable w.r.t. perturbations</li>
+              <li>but specific structure allowing optimizations for computing its PH</li>
+            </ul>
+          </div>
+        </div>
+        <div style="clear: both;">
+          <div class="fragment col3" data-fragment-index="0">
+            <img src="images/DR/rips0.40.svg" width=60%>
+          </div>
+          <div class="fragment col3" data-fragment-index="1">
+            <img src="images/DR/delcech0.40.svg" width=60%>
+          </div>
+          <div class="fragment col3" data-fragment-index="2">
+            <img src="images/DR/delrips0.40.svg" width=60%>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Delaunay&ndash;Rips filtration</h2>
+          <div>
+            <div class="col3">
+              \[\ripsf{r}(\pc) = \left\{\sigma\subset\pc\mid\delta(\sigma)\leq2r\right\}\]
+              <br>
+              <svg id="rips-svg-2" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col3">
+              \[\begin{align*}
+              \delripsf{r}(\pc) &= \ripsf{r}(\pc) \cap \del(\pc)\\
+              &= \left\{\sigma\in\del(\pc)\mid\delta(\sigma)\leq2r\right\}
+              \end{align*}\]
+              <svg id="drips-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col3">
+              <div class="vspace5"></div>
+              <svg id="drips-pd-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+            </div>
+          </div>
+          <br>
+          radius $r$ = <span id="drips-r-value">0.000</span>
+        </section>
+        <section>
+          <h2>With Delaunay&ndash;Čech</h2>
+          <br>
+          <div>
+            <div class="col4">
+              <h4>Rips</h4>
+              <svg id="cmp3-rips-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col4">
+              <h4>Delaunay&ndash;Čech</h4>
+              <svg id="cmp3-delcech-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col4">
+              <h4>Delaunay&ndash;Rips</h4>
+              <svg id="cmp3-drips-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col4">
+              <svg id="cmp3-pd-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Instabilities</h2>
+        <br>
+        <img src="images/DR/stability.gif" width=80%>
+      </section>
+
+      <section>
+        <h2>Contributions</h2>
+        <br>
+        <ol>
+          <li class="fragment">Find how the Delaunay&ndash;Rips persistence diagrams approximate their Rips counterparts
+          </li>
+          <li class="fragment">Upper-bound the worst possible instability</li>
+          <li class="fragment">Measure how these instabilities affect performance in applications</li>
+          <li class="fragment">Design an algorithm leveraging its specific structure</li>
+        </ol>
+      </section>
+
+
+      <section>
+        <section>
+          <h2>Theoretical guarantees</h2>
+          <br>
+          <div class="col32">
+            <blockquote class="theorem">
+              <div class="block-title">Rips approximation [Clémot et al., 2025b]</div>
+              The $\hdim$-dimensional Rips and Delaunay&ndash;Rips persistence modules
+              $\big(\hgf{\hdim}{\ripsn}{r}\big)_{r\geq0}$ and
+              $\big(\hgf{\hdim}{\delripsn}{r}\big)_{r\geq0}$ are multiplicatively,
+              strongly $\jung{\hdim+1}$-interleaved. As a corollary:
+              \[
+              \bottle\left(\log\dgmdr{\hdim}(\pc),\log\dgmrips{\hdim}(\pc)\right)\leq\log\jung{\hdim+1}.
+              \]
+            </blockquote>
+            <br>
+            <br>
+            <blockquote class="theorem fragment" data-fragment-index="4">
+              <div class="block-title">Instability upper bound [Clémot et al., 2025b]</div>
+              Let $X$ and $Y$ be two point clouds. Then for any $\hdim\geq0$:
+              \[
+              \bottle\left(\dgmdr{\hdim}(X),\dgmdr{\hdim}(Y)\right)
+              \leq\left(\jung{\hdim+1}-1\right)\max\{\delta(X),\delta(Y)\} + 2\gromov(X,Y).
+              \]
+            </blockquote>
+          </div>
+          <div class="col3">
+            <div class="cols-vcenter">
+              <div class="r-stack" style="width: 100%">
+                <img class="fragment" data-fragment-index="0" src="images/DR/pd.svg" width=100%>
+                <img class="fragment" data-fragment-index="1" src="images/DR/pd_log.svg" width=100%>
+                <img class="fragment" data-fragment-index="2" src="images/DR/pd_log_bottleneck.svg" width=100%>
+              </div>
+              <img class="fragment" data-fragment-index="3" src="images/DR/R-DR_worstCase3D.png" width=60%>
+            </div>
+            <br>
+            <img class="fragment" data-fragment-index="4" src="images/DR/stability_delrips.gif" width=100%>
+          </div>
+        </section>
+        <section>
+          <h2>Why?</h2>
+          <blockquote class="theorem">
+            <div class="block-title">Jung's theorem [Jung, 1901]</div>
+            Any compact set $K\subset\bbr^\ddim$ of diameter $\delta(K)$ has a minimum enclosing ball of radius
+            $\meb(K)$ satisfying:
+            \[\delta(K) \leq 2\meb(K) \leq
+            \delta(K)\underbrace{\sqrt{\frac{2\ddim}{\ddim+1}}}_{\triangleq\jung{\ddim}}.\]
+          </blockquote>
+          <img src="images/DR/inclusions.svg" width=20%>
+          <blockquote class="theorem">
+            <div class="block-title">Homotopy equivalence [Bauer et al., 2017]</div>
+            For any $r\geq0$, there are the following sequences of elementary collapses (hence homotopy equivalences):
+            \[\cechf{r}(\pc)\collapses\delcechf{r}(\pc)\collapses\alphaf{r}(\pc).\]
+          </blockquote>
+        </section>
+      </section>
+
+      <!-- <section>
+        <h2>Algorithm</h2>
+        <p><b>Structure:</b> a simplex has the diameter of its longest edge</p>
+        <br>
+        <p>Find higher-dimensional structures analogous to those used in the planar Rips algorithm:</p>
+        <div
+          style="display: grid; grid-template-columns: max-content max-content max-content; column-gap: 0.4em; justify-content: center; align-items: baseline;">
+          <span style="text-align: right;">$\mst$</span><span>$\longrightarrow$</span><span
+            style="text-align: left;">minimum spanning acycle $\msa{\hdim}$</span>
+          <span style="text-align: right;">$\rng$</span><span>$\longrightarrow$</span><span
+            style="text-align: left;">Urquhart simplices $\usc{\hdim}$</span>
+          <span style="text-align: right;">$\rng$-polygons</span><span>$\longrightarrow$</span><span
+            style="text-align: left;">$\hdim$-cells</span>
+        </div>
+
+        <div class="cols-hcenter">
+          <div class="col4">
+            <img src="images/DR/Octahedron__DEL_MSA.png" width="80%">
+            <p>$\msa{2}(\del(\pc))$</p>
+          </div>
+          <div class="col4">
+            <img src="images/DR/Octahedron__USC.png" width="80%">
+            <p>$\usc{2}$</p>
+          </div>
+        </div>
+      </section> -->
+
+      <section>
+        <section>
+          <h2>Algorithm</h2>
+          <p><b>Structure:</b> a simplex has the diameter of its longest edge (like Rips)</p>
+          <p>$\longrightarrow$ use higher-dimensional structures analogous to $\mst$ / $\rng$</p>
+          <br>
+          <div class="cols-vcenter">
+            <div class="col52 fragment" data-fragment-index="0">
+              <div class="simpleframe cols-vcenter cols-hcenter">
+                <div>
+                  minimum spanning<br>tree ($\mst$)<br>$\betti{0}^\star=\betti{1}=0$
+                </div>
+                <span class="hspace5"></span>
+                <img src="images/DR/mst.svg" width=40%>
+              </div>
+            </div>
+            <div class="col52 fragment" data-fragment-index="1">
+              <div class="simpleframe cols-vcenter cols-hcenter">
+                <div>relative neighborhood<br>graph ($\rng$)</div>
+                <span class="hspace5"></span>
+                <img src="images/DR/rng.svg" width=40%>
+              </div>
+            </div>
+            <div class="col5 fragment" data-fragment-index="2">
+              <div class="cols-vcenter cols-hcenter">
+                <div>$\rng$-polygons</div>
+              </div>
+            </div>
+          </div>
+          <div class="cols-vcenter">
+            <div class="col52 fragment" data-fragment-index="0">$\Huge\downarrow$</div>
+            <div class="col52 fragment" data-fragment-index="1">$\Huge\downarrow$</div>
+            <div class="col5 fragment" data-fragment-index="2">$\Huge\downarrow$</div>
+          </div>
+          <div class="cols-vcenter">
+            <div class="col52 fragment" data-fragment-index="0">
+              <div class="simpleframe cols-vcenter cols-hcenter">
+                <div>
+                  minimum $\hdim$-spanning<br>acycle ($\msa{\hdim}$)
+                  <br>
+                  <br>
+                  <small>$\msa{2}(\del(\pc))$<br>$\betti{1}=\betti{2}=0$</small>
+                </div>
+                <span class="hspace2"></span>
+                <img src="images/DR/Octahedron__DEL_MSA.png" width=40%>
+              </div>
+            </div>
+            <div class="col52 fragment" data-fragment-index="1">
+              <div class="simpleframe cols-vcenter cols-hcenter">
+                <div>
+                  Urquhart<br>$\hdim$-simplices ($\usc{\hdim}$)
+                </div>
+                <span class="hspace2"></span>
+                <img src="images/DR/Octahedron__USC.png" width=40%>
+              </div>
+            </div>
+            <div class="col5 fragment" data-fragment-index="2">
+              <div class="cols-vcenter cols-hcenter">
+                <div>$\hdim$-dimensional cells</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Constructions</h2>
+          <br>
+          \[\rnsc{\hdim}(\calk) = \left\{\sigma\in\calk^\hdim\mid\forall\tau\in\cof(\sigma,
+          \calk),\sigma\prec\max\partial\tau\right\}\]
+
+          \[\rng(\pc)=\rnsc{1}\big(\Delta(\pc)\big)\]
+          \[\ug(\pc)=\rnsc{1}\big(\del(\pc)\big)\]
+
+          \[\usc{\hdim}(\pc)=\rnsc{\hdim}\big(\del(\pc)\big)=\left\{\sigma\in\del(\pc)^\hdim\mid\forall\tau\in\cof\left(\sigma,
+          \del(\pc)\right),\sigma\prec\max\partial\tau\right\}\]
+
+          <br>
+          <div class="cols-hcenter cols-vcenter">
+            <div class="col3">
+              <ul>
+                <li>$\msa{\hdim}\subseteq\usc{\hdim}$</li>
+                <li>All $\hdim$-simplices creating a positive $\PH{\hdim}$ pair are in $\usc{\hdim}\setminus\msa{\hdim}$
+                </li>
+                <!-- <li>All edges creating a positive $\PH{1}$ pair are exactly $\usc{1}\setminus\msa{1}=\ug\setminus\mst$
+                </li> -->
+              </ul>
+            </div>
+            <div class="col2">
+              <img src="images/DR/simplices.svg" width=100%>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Constructions (2)</h2>
+          <br>
+          Non-manifold simplices:
+          \[\nmj{\hdim} = \left\{\sigma\in\del^{\hdim}\mid|\cof(\sigma,\msa{\hdim+1})|>2\right\}.\]
+          <img src="images/DR/Example_3classes_MSA.png">
+          <img src="images/DR/Example_3classes.png">
+          <img src="images/DR/Example_2classes.png">
+          <div class="legend">
+            <span><i style="--color: black"></i>$\mst$</span>
+            <span><i style="--color: var(--c-red)"></i>$\ug$</span>
+            <span><i style="--color: var(--c-blue)"></i>$\nmj{1}\setminus\ug$</span>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Algorithm</h2>
+        <br>
+        <div class="cols-vcenter cols-hcenter">
+          <div class="col3">
+            <ul>
+              <li>merge relevant simplices into cells</li>
+              <li>perform the boundary matrix reduction with a smaller number of cells</li>
+            </ul>
+          </div>
+          <div class="col2">
+            <!-- <img src="images/DR/Example_2classes.png" width=40%> -->
+            <img src="images/DR/Example_3classes.png" width=60%>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section>
+          <h2>Runtime</h2>
+          <br>
+          <div class="cols-vcenter">
+            <div class="col32">
+              <img src="images/DR/benchmark_3_8_unif_delcech.svg" width=100% />
+            </div>
+            <div class="col3">
+              <small>
+                <p>Comparison with:</p>
+                <ul>
+                  <li>Delaunay&ndash;Rips implementations (Gudhi and PHAT)</li>
+                  <li>Delaunay&ndash;Čech implementation (Gudhi)</li>
+                </ul>
+                <div class="vspace2"></div>
+                <p>+ parallelized version</p>
+              </small>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Parallel implementation</h2>
+          <br>
+          <div class="cols-vcenter">
+            <div class="col2">
+              <ul>
+                <li>concurrent hash tables</li>
+                <li>concurrent union-find</li>
+                <li>parallel, lock-free boundary matrix reduction</li>
+              </ul>
+            </div>
+            <div class="col2">
+              <img src="images/DR/parallel.svg" width=50% />
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Number of simplices</h2>
+          <br>
+          <img src="images/DR/number_of_simplices.svg" width=50%>
+        </section>
+      </section>
+
+      <section>
+        <h2>Practical evaluation: classification problems</h2>
+        <div class="cols-vcenter">
+          <div class="col3">
+            <h4>Synthetic toy dataset</h4>
+            <p><small>determine the radius of the voids</small></p>
+            <img src="images/DR/toy_dataset.png" width=60%>
+          </div>
+          <div class="col3">
+            <h4>Porous materials with different generators</h4>
+            <p><small>determine which generator was used</small></p>
+            <img src="images/intro/blobs_pc_zoom.jpg" width=55%>
+            <img src="images/intro/fractal_pc_zoom.jpg" width=55%>
+          </div>
+          <div class="col3">
+            <h4>UCR time series datasets</h4>
+            <img src="images/ECG200.svg" width=100%>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Practical evaluation</h2>
+        <br>
+        <p>$\longrightarrow$ trade-off between classification accuracy and runtime.</p>
+        <br>
+        <div class="">
+          <div class="col3">
+            <h4>Synthetic toy dataset</h4>
+            <br>
+            <table class="results-table" style="margin:0 auto;">
+              <colgroup span="2"></colgroup>
+              <colgroup span="1"></colgroup>
+              <colgroup span="2"></colgroup>
+              <thead>
+                <tr>
+                  <th colspan="2" rowspan="2"></th>
+                  <th rowspan="2">accuracy</th>
+                  <th colspan="2">runtime (s)</th>
+                </tr>
+                <tr>
+                  <th>diagrams</th>
+                  <th>classif.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowspan="3">$\delripsf{}$</td>
+                  <td>ATOL</td>
+                  <td>$0.94\pm0.02$</td>
+                  <td rowspan="3">5.7</td>
+                  <td>5.8</td>
+                </tr>
+                <tr>
+                  <td>PL</td>
+                  <td>$0.95\pm0.01$</td>
+                  <td>1.4</td>
+                </tr>
+                <tr>
+                  <td>stats</td>
+                  <td>$0.82\pm0.02$</td>
+                  <td>0.7</td>
+                </tr>
+              </tbody>
+              <tbody>
+                <tr>
+                  <td rowspan="3">$\delcechf{}$</td>
+                  <td>ATOL</td>
+                  <td>$0.96\pm0.01$</td>
+                  <td rowspan="3">37.0</td>
+                  <td>25.4</td>
+                </tr>
+                <tr>
+                  <td>PL</td>
+                  <td>$0.97\pm0.01$</td>
+                  <td>4.4</td>
+                </tr>
+                <tr>
+                  <td>stats</td>
+                  <td>$0.91\pm0.01$</td>
+                  <td>1.2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col3">
+            <h4>Porous materials</h4>
+            <br>
+            <table class="results-table" style="margin:0 auto;">
+              <colgroup span="2"></colgroup>
+              <colgroup span="1"></colgroup>
+              <colgroup span="2"></colgroup>
+              <thead>
+                <tr>
+                  <th colspan="2" rowspan="2"></th>
+                  <th rowspan="2">accuracy</th>
+                  <th colspan="2">runtime (s)</th>
+                </tr>
+                <tr>
+                  <th>diagrams</th>
+                  <th>classif.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowspan="3">$\delripsf{}$</td>
+                  <td>ATOL</td>
+                  <td>$0.89\pm0.03$</td>
+                  <td rowspan="3">24.0</td>
+                  <td>17.4</td>
+                </tr>
+                <tr>
+                  <td>PL</td>
+                  <td>$0.77\pm0.04$</td>
+                  <td>1.5</td>
+                </tr>
+                <tr>
+                  <td>stats</td>
+                  <td>$0.69\pm0.03$</td>
+                  <td>0.5</td>
+                </tr>
+              </tbody>
+              <tbody>
+                <tr>
+                  <td rowspan="3">$\delcechf{}$</td>
+                  <td>ATOL</td>
+                  <td>$0.92\pm0.03$</td>
+                  <td rowspan="3">133.9</td>
+                  <td>87.0</td>
+                </tr>
+                <tr>
+                  <td>PL</td>
+                  <td>$0.81\pm0.04$</td>
+                  <td>11.5</td>
+                </tr>
+                <tr>
+                  <td>stats</td>
+                  <td>$0.72\pm0.05$</td>
+                  <td>1.8</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col3">
+            <h4>UCR time series datasets</h4>
+            <div class="vspace1"></div>
+            <div class="col2">
+              <img src="images/DR/ucr_diagrams.svg" width="100%">
+              <span class="hspace10"></span>
+              <span class="hspace2"></span>
+              <small>Runtime (diagrams)</small>
+            </div>
+            <div class="col2">
+              <img src="images/DR/ucr_hyperparameters.svg" width="100%">
+              <span class="hspace10"></span>
+              <span class="hspace2"></span>
+              <small>Runtime (classification)</small>
+            </div>
+          </div>
+        </div>
+        <p class="footnote">
+          ATOL <span class="loccredit">[Royer et al., 2021]</span>;
+          PL = persistence landscapes <span class="loccredit">[Bubenik, 2015]</span>;
+          stats = persistence statistics vector
+        </p>
+      </section>
+
+      <section data-background="images/delaunayRipsPersistence.jpg" data-visibility="hidden">
+        <h3 style="color:white; background-color: #ffffff66; padding-bottom: 10px;">Delaunay&ndash;Rips TTK example</h3>
+      </section>
+
+      <section>
+        <section>
+          <h2>Implementation</h2>
+          <br>
+          <div class="col32">
+            <h3 style="display:flex;align-items:center;justify-content:center;gap:0.5em;">
+              Integration into TTK
+              <img src="images/logos/ttk.png" style="height:1.8em;margin:0;" />
+            </h3>
+            <img src="images/delaunayRipsPersistence.jpg" width="100%">
+            <p>
+              <small>example available online: <a
+                  href="https://topology-tool-kit.github.io/examples/delaunayRipsPersistence/">https://topology-tool-kit.github.io/examples/delaunayRipsPersistence</a>
+              </small>
+            </p>
+          </div>
+          <div class="fragment col3">
+            <h3 style="display:flex;align-items:center;justify-content:center;gap:0.5em;">
+              Python package
+              <img src="images/logos/pypi.svg" style="height:1.8em;margin:0;" />
+            </h3>
+            <code>pip install geoph</code>
+            <pre>
+              <code class="language-python" data-trim data-noescape>
+                import geoph
+  
+                import gudhi
+                import matplotlib.pyplot as plt
+                import numpy as np
+                
+                X = np.random.random((1000,3))
+                diag = geoph.delaunayRipsPersistenceDiagram(X)
+                
+                gudhi.plot_persistence_diagram(diag)
+                plt.show()
+              </code>
+            </pre>
+            <img src="images/DR/geoph.svg" width=84% />
+          </div>
+        </section>
+        <section>
+          <h2>Persistent generators</h2>
+          <img src="images/DR/generators.png" width="80%">
+        </section>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <section data-chapter="Sublevel Flood bifiltration" data-marker-color=#598b94>
+        <div class="chapter-frame">
+          <h1>Sublevel Flood bifiltration</h1>
+          <p>Clémot, Digne, Tierny, "The sublevel Flood bifiltration: towards scalable 2-parameter persistent homology",
+            accepted at NeurIPS 2026</p>
+        </div>
+        <div class="vspace2"></div>
+        <ul>
+          <li>available as a Python package</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Why multiparameter persistent homology?</h2>
+        <p>Motivation: sensitivity to outliers</p>
+        <div class="col3">
+          <img src="images/SLF/normal_pc.svg" width="60%">
+          <img src="images/SLF/normal_diag.svg" width="60%">
+        </div>
+        <div class="col3 fragment">
+          <img src="images/SLF/noise_pc.svg" width="60%">
+          <img src="images/SLF/noise_diag.svg" width="60%">
+          <p>with perturbation</p>
+        </div>
+        <div class="col3 fragment">
+          <img src="images/SLF/outliers_pc.svg" width="60%">
+          <img src="images/SLF/outliers_diag.svg" width="60%">
+          <p>with outliers</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Density estimate</h2>
+        <div class="bif-header"></div>
+        <div class="cols-hcenter">
+          <div class="col3">
+            <span class="fragment density-color-frag" data-fragment-index="0"></span>
+            <svg id="density-svg" class="density-points" data-id="bif-points" width="500" height="500"
+              viewBox="0 0 500 500"></svg>
+            <div style="visibility: hidden;">&nbsp;</div>
+          </div>
+          <div class="fragment col3" data-fragment-index="0" style="align-self: center;">
+            <p>Give the points a meaningful value:</p>
+            <ul>
+              <li>a density estimate (KDE, DTM...)</li>
+              <li>application-provided function...</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sublevel offset bifiltration</h2>
+        <div class="bif-header">
+          \[\offsetf{r,s}(X,\gamma)=\offsetf{r}(X_s)=\bigcup_{x\in X_s}\ball_r(x) \quad\text{ with }\quad
+          X_s=\gamma^{-1}((-\infty,s]).\]
+        </div>
+        <div class="cols-hcenter">
+          <div class="col3">
+            <svg id="offset-bif-svg" data-id="bif-points" width="500" height="500" viewBox="0 0 500 500"></svg>
+            <div id="offset-bif-label">radius = 0.000, codensity = 0.000</div>
+          </div>
+          <div class="col3">
+            <canvas id="offset-bif-canvas" data-id="bif-canvas" width="500" height="500"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sublevel Delaunay bifiltration</h2>
+        <div class="bif-header">
+          <p>Topologically equivalent to the sublevel offset bifiltration <span class="loccredit">[Alonso et al.,
+              2024]</span></p>
+        </div>
+        <div class="cols-hcenter">
+          <div class="col3">
+            <svg id="delaunay-bif-svg" data-id="bif-points" width="500" height="500" viewBox="0 0 500 500"></svg>
+            <div id="delaunay-bif-label">radius = 0.000, codensity = 0.000</div>
+          </div>
+          <div class="col3">
+            <canvas id="delaunay-bif-canvas" data-id="bif-canvas" width="500" height="500"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Bifiltrations</h2>
+        <div class="cols-vcenter">
+          <div class="col54">
+            <blockquote class="definition">
+              <div class="block-title">Bifiltration (general definition)</div>
+              A bifiltration is a family of topological spaces
+              $(X_{r,s})_{(r,s)\in\bbr^2}$
+              satisfying:
+              \[X_{r,s}\subseteq X_{r',s'}\text{ whenever } r\leq r'\text{ and }s\leq s'.\]
+            </blockquote>
+            <ul>
+              <!-- <li>
+                In our context, each simplex has a minimum set of bigrades $\bigrades(\sigma)\subset\bbr^2$ that
+                verifies:
+                \[\sigma\in\calk_\alpha \Longleftrightarrow \exists\beta\in\bigrades(\sigma)\text{ s.t.
+                }\beta\preceq\alpha.\]
+              </li> -->
+              <li class="fragment">
+                The <i>set of bigrades</i> $\bigrades(\sigma)\subset\bbr^2$ represents "when" a simplex is inserted
+              </li>
+              <li class="fragment">
+                Unlike the single-parameter case: no analogue of the persistence diagram
+              </li>
+              <li class="fragment">
+                Example of descriptor: <i>multiparameter module approximation</i> (MMA)
+                <span class="loccredit">[Loiseaux et al., 2025]</span>
+              </li>
+            </ul>
+          </div>
+          <div class="col4">
+            <p>1-critical: $|\bigrades(\sigma)|=1$</p>
+            <img src="images/SLF/1criticality.svg" width=70%>
+            <p>multi-critical: $|\bigrades(\sigma)|$ can be $>1$</p>
+            <img src="images/SLF/kcriticality.svg" width=70%>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Example of descriptor</h2>
+        <br>
+        <div class="cols-hcenter">
+          <div class="col3">
+            <h4>Simplicial complex</h4>
+            <svg id="complex-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            <div id="sr-label">r = 0.000, s = 0.000</div>
+          </div>
+          <div class="col3">
+            <h4>Multiparameter module approximation</h4>
+            <div class="module-axes">
+              <canvas id="module-canvas" width="500" height="500"></canvas>
+              <span class="y-label">codensity $s$</span>
+              <span class="x-label">radius $r$</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Contribution</h2>
+        <br>
+        <p>Generalize the recently proposed single-parameter <i>Flood filtration</i> <span class="loccredit">[Graf et
+            al., 2025]</span> to the 2-parameter context.</p>
+        <p>
+          $\longrightarrow$ smaller simplicial complexes, with computation of filtration values on the GPU
+        </p>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Flood filtration</h2>
+        <span class="loccredit">[Graf et al., 2025]</span>
+        \[\flood_r(\pc,\textcolor{#cf244b}{L})=\left\{\sigma\in\del(\textcolor{#cf244b}{L})\mid\conv(\sigma)\subset\bigcup\limits_{x\in
+        \pc}\ball_r(x)\right\}\]
+        <div class="rips-wrap">
+          <svg id="flood-alone-svg" data-id="flood-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+          <div class="rips-controls">
+            <label for="flood-slider">radius $r$</label>
+            <input type="range" id="flood-slider" min="0" max="0.7" step="0.001" value="0">
+            <span id="flood-alone-r-value">0.000</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <section data-auto-animate>
+          <h2>Flood filtration</h2>
+          <br>
+          <!-- The <em>Flood filtration</em> of a point set $X$, with landmarks $L$, is defined as: -->
+          <div>
+            <div class="col3">
+              Delaunay&ndash;Čech filtration $\delcechf{}(\pc)$
+              <svg id="delcech-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col3">
+              Flood filtration $\flood_{}(\pc,\textcolor{#cf244b}{L})$
+              <svg id="flood-svg" data-id="flood-svg" width="500" height="500" viewBox="0 0 500 500"></svg>
+            </div>
+            <div class="col3">
+              <svg id="flood-pd-svg" width="600" height="600" viewBox="0 0 600 600"></svg>
+            </div>
+          </div>
+          <br>
+          radius $r$ = <span id="flood-r-value">0.000</span>
+        </section>
+        <section>
+          <h2>Flood filtration: properties</h2>
+          <br>
+          <blockquote class="theorem">
+            <div class="block-title">Stability at fixed landmarks [Graf et al., 2025]</div>
+            For any $X,Y,L$ and any $\hdim\in\bbn$:
+            \[\bottle\left(\dgm{\hdim}(\flood(X,L)), \dgm{\hdim}(\flood(Y,L))\right)\leq\hausdo(X,Y)\]
+          </blockquote>
+          <br>
+          <blockquote class="theorem">
+            <div class="block-title">Approximation result, planar case [Graf et al., 2025]</div>
+            In the planar case where $L,X\subset\bbr^2$, for any $\hdim\in\bbn$:
+            \[\bottle\left(\dgm{\hdim}(\flood(X,L)), \dgm{\hdim}(\alphaf{}(X))\right)\leq2\hausdo(X,L).\]
+          </blockquote>
+
+        </section>
+      </section>
+
+      <section>
+        <section data-auto-animate>
+          <h2>Sublevel Flood bifiltration</h2>
+          <blockquote class="definition">
+            <div class="block-title">Sublevel Flood bifiltration [Clémot et al., 2026]</div>
+            \[\flood_{r,s}(X,L,\gamma)=\flood_{r}\left(X_s,L\right)=\left\{\sigma\in\del(L)\mid\conv(\sigma)\subset\bigcup\limits_{x\in
+            X_s}\ball_r(x)\right\}\quad\text{ with }\quad
+            X_s=\gamma^{-1}((-\infty,s]).\]
+          </blockquote>
+          <br>
+          <div class="cols-hcenter">
+            <div class="col3">
+              <h4>Simplicial complex</h4>
+              <svg id="complex-svg-2" data-id="flood-complex" width="500" height="500" viewBox="0 0 500 500"></svg>
+              <div id="sr-label-2">r = 0.000, s = 0.000</div>
+            </div>
+            <div class="col3">
+              <h4>Module approximation</h4>
+              <div class="module-axes">
+                <canvas id="module-canvas-2" data-id="flood-module" width="500" height="500"></canvas>
+                <span class="y-label">codensity $s$</span>
+                <span class="x-label">radius $r$</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>Computational aspects</h2>
+          <br>
+          <div class="cols-vcenter">
+            <div class="col3">
+              <h4>Discretization</h4>
+              Each simplex $\sigma\in\del(L)$ is discretized into samples $P_\sigma$.
+              <br>
+              <br>
+              <h4>Formulation</h4>
+              $\bigrades(\sigma)$ is the Pareto front of:
+              \[\left\{\left(\max_{p\in P_\sigma}\min_{x\in \Xincr{i}^\sigma}\dist(p,x),\gamma(X_i^\sigma)\right),1\leq
+              i\leq|X^\sigma|\right\}.\]
+            </div>
+            <div class="col32">
+              <img src="images/SLF/compute.svg" width=100%>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <section data-auto-animate>
+          <h2>Flood and Delaunay bifiltrations</h2>
+          <br>
+          <div class="cols-hcenter cols-vcenter">
+            <div class="col3">
+              <h4>Sublevel Delaunay</h4>
+              <div class="frame">
+                <p>cheap but large bifiltration</p>
+                <small>(1-critical)</small>
+                <p>costly PH</p>
+              </div>
+            </div>
+            <svg id="delaunay-cmp-svg" width="500" height="500" viewBox="0 0 500 500"
+              style="width: 420px; height: 420px;"></svg>
+            <div class="module-axes" style="margin-left: 60px;">
+              <canvas id="delaunay-cmp-canvas" width="500" height="500" style="width: 420px; height: 420px;"></canvas>
+              <span class="y-label">codensity</span>
+              <span class="x-label">radius</span>
+            </div>
+          </div>
+          <div class="cols-hcenter cols-vcenter">
+            <div class="col3">
+              <h4>Sublevel Flood</h4>
+              <div class="frame">
+                <p>expensive but small bifiltration</p>
+                <small>(multi-critical)</small>
+                <p>cheaper PH</p>
+              </div>
+            </div>
+            <svg id="flood-cmp-svg" data-id="flood-complex" width="500" height="500" viewBox="0 0 500 500"
+              style="width: 420px; height: 420px;"></svg>
+            <div class="module-axes" style="margin-left: 60px;">
+              <canvas id="flood-cmp-canvas" data-id="flood-module" width="500" height="500"
+                style="width: 420px; height: 420px;"></canvas>
+              <span class="y-label">codensity</span>
+              <span class="x-label">radius</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Example: noisy sphere</h2>
+          <div class="col2">
+            <div id="plot-sphere" style="width:700px;height:700px;margin:auto;"></div>
+            <span class="fragment" data-fragment-index="0" id="sphere-color"></span>
+          </div>
+          <div class="fragment col2" data-fragment-index="1">
+            <div class="label-grid">
+              <span>Persistence diagram:</span>
+              <img src="images/SLF/example_sphere_cechPD.jpg">
+              <span></span>
+              <span>
+                Sublevel Delaunay bifiltration:
+              </span>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="2" src="images/SLF/example_sphere_delaunay_1.svg">
+                <img class="fragment fade-in" data-fragment-index="2"
+                  src="images/SLF/example_sphere_delaunay_1_clean.svg">
+              </div>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="2" src="images/SLF/example_sphere_delaunay_2.svg">
+                <img class="fragment fade-in" data-fragment-index="2"
+                  src="images/SLF/example_sphere_delaunay_2_clean.svg">
+              </div>
+              <span>
+                Sublevel Flood bifiltration:
+              </span>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="2" src="images/SLF/example_sphere_flood_1.svg">
+                <img class="fragment fade-in" data-fragment-index="2" src="images/SLF/example_sphere_flood_1_clean.svg">
+              </div>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="2" src="images/SLF/example_sphere_flood_2.svg">
+                <img class="fragment fade-in" data-fragment-index="2" src="images/SLF/example_sphere_flood_2_clean.svg">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Example: noisy torus</h2>
+          <div class="col2">
+            <div id="plot-torus" style="width:700px;height:700px;margin:auto;"></div>
+          </div>
+          <div class="col2">
+            <div class="label-grid">
+              <span>Persistence diagram:</span>
+              <img src="images/SLF/example_torus_cechPD.jpg">
+              <span></span>
+              <span>Sublevel Delaunay bifiltration:</span>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="0" src="images/SLF/example_torus_delaunay_1.svg">
+                <img class="fragment fade-in" data-fragment-index="0"
+                  src="images/SLF/example_torus_delaunay_1_clean.svg">
+              </div>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="0" src="images/SLF/example_torus_delaunay_2.svg">
+                <img class="fragment fade-in" data-fragment-index="0"
+                  src="images/SLF/example_torus_delaunay_2_clean.svg">
+              </div>
+              <span>Sublevel Flood bifiltration:</span>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="0" src="images/SLF/example_torus_flood_1.svg">
+                <img class="fragment fade-in" data-fragment-index="0" src="images/SLF/example_torus_flood_1_clean.svg">
+              </div>
+              <div class="r-stack">
+                <img class="fragment fade-out" data-fragment-index="0" src="images/SLF/example_torus_flood_2.svg">
+                <img class="fragment fade-in" data-fragment-index="0" src="images/SLF/example_torus_flood_2_clean.svg">
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <section>
+          <h2>Stability</h2>
+          <br>
+          <blockquote class="theorem">
+            <div class="block-title">Stability (fixed landmarks) [Clémot et al., 2026]</div>
+            Let $X,Y\subset\bbr^d$ be two point sets, and $\gamma_X$ and $\gamma_Y:\bbr^d\to\bbr$ two
+            $\lipconst$-Lipschitz functions.
+            With $L$ fixed:
+            \[
+            \interl\left(\floodmodule(X,L,\gamma_X),
+            \floodmodule(Y,L,\gamma_{Y})\right)\leq\max\left(\hausdo(X,Y),\lipconst\hausdo(X,Y)+\lVert\gamma_X-\gamma_Y\rVert_\infty\right).
+            \]
+          </blockquote>
+          + refinements when $\gamma_X$ and $\gamma_Y$ are obtained by KDE or DTM
+        </section>
+        <section>
+          <h2>Stability empirical evaluation</h2>
+
+          <img src="images/SLF/stability_ring_fix_10000.svg" width=25%>
+          <img src="images/SLF/stability_sphere_fix_10000.svg" width=25%>
+          <img src="images/SLF/stability_torus_fix_10000.svg" width=25%>
+          <br>
+          <img src="images/SLF/stability_ring_unfix_10000.svg" width=25%>
+          <img src="images/SLF/stability_sphere_unfix_10000.svg" width=25%>
+          <img src="images/SLF/stability_torus_unfix_10000.svg" width=25%>
+        </section>
+        <section>
+          <h2>Approximation empirical evaluation</h2>
+          <br>
+          <img src="images/SLF/approximation_ring_10000.svg" width=25%>
+          <img src="images/SLF/approximation_sphere_10000.svg" width=25%>
+          <img src="images/SLF/approximation_torus_10000.svg" width=25%>
+        </section>
+      </section>
+
+      <section>
+        <section>
+          <h2>Approximation by masking</h2>
+          <br>
+          <ul>
+            <li>unlike the single-parameter Flood filtration, far points must be considered</li>
+            <li>masking mechanism to compute an approximate $\cflood(X,L,\gamma)$</li>
+            <li>still allows GPU batching</li>
+          </ul>
+          <div class="vspace1"></div>
+          <div class="col32 col-center">
+            <blockquote class="theorem">
+              <div class="block-title">Approximation result [Clémot et al., 2026]</div>
+              $\cflood(X,L,\gamma)$ is a bifiltration and, denoting
+              $\Delta(L)=\max\limits_{\sigma\in\del(L)}\delta(\sigma)$:
+              \[\interl\left(\floodmodule(X,L,\gamma), \widetilde{\floodmodule}(X,L,\gamma)\right)\leq2\Delta(L).\]
+            </blockquote>
+          </div>
+        </section>
+        <section>
+          <h2>Evaluation of the masking strategy</h2>
+          <br>
+          <table class="results-table" style="margin:0 auto;">
+            <colgroup span="2"></colgroup>
+            <colgroup span="2"></colgroup>
+            <colgroup span="2"></colgroup>
+            <colgroup span="2"></colgroup>
+            <colgroup span="2"></colgroup>
+            <thead>
+              <tr>
+                <th rowspan="2">$|X|$</th>
+                <th rowspan="2">$|L|$</th>
+                <th colspan="2">runtime (s)</th>
+                <th colspan="2">$\matchd$ ($\homol{0}$)</th>
+                <th colspan="2">$\matchd$ ($\homol{1}$)</th>
+                <th colspan="2">$\matchd$ ($\homol{2}$)</th>
+              </tr>
+              <tr>
+                <th>M</th>
+                <th>E</th>
+                <th>M</th>
+                <th>E</th>
+                <th>M</th>
+                <th>E</th>
+                <th>M</th>
+                <th>E</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="4">$1000$</td>
+                <td>$100$</td>
+                <td>$0.14$</td>
+                <td>$0.39$</td>
+                <td>$0.17$</td>
+                <td>$0.12$</td>
+                <td>$0.04$</td>
+                <td>$0.05$</td>
+                <td>$0.05$</td>
+                <td>$0.02$</td>
+              </tr>
+              <tr>
+                <td>$300$</td>
+                <td>$0.46$</td>
+                <td>$1.38$</td>
+                <td>$0.09$</td>
+                <td>$0.09$</td>
+                <td>$0.03$</td>
+                <td>$0.03$</td>
+                <td>$0.06$</td>
+                <td>$0.01$</td>
+              </tr>
+              <tr>
+                <td>$500$</td>
+                <td>$0.76$</td>
+                <td>$2.46$</td>
+                <td>$0.07$</td>
+                <td>$0.07$</td>
+                <td>$0.03$</td>
+                <td>$0.03$</td>
+                <td>$0.06$</td>
+                <td>$0.01$</td>
+              </tr>
+              <tr>
+                <td>$1000$</td>
+                <td>$1.70$</td>
+                <td>$5.07$</td>
+                <td>$0.01$</td>
+                <td>$0.01$</td>
+                <td>$0.03$</td>
+                <td>$0.03$</td>
+                <td>$0.02$</td>
+                <td>$0.01$</td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr>
+                <td rowspan="4">$20000$</td>
+                <td>$100$</td>
+                <td>$0.55$</td>
+                <td>$5.03$</td>
+                <td>$0.05$</td>
+                <td>$0.05$</td>
+                <td>$0.08$</td>
+                <td>$0.10$</td>
+                <td>$0.10$</td>
+                <td>$0.11$</td>
+              </tr>
+              <tr>
+                <td>$300$</td>
+                <td>$1.12$</td>
+                <td>$18.85$</td>
+                <td>$0.04$</td>
+                <td>$0.05$</td>
+                <td>$0.07$</td>
+                <td>$0.06$</td>
+                <td>$0.10$</td>
+                <td>$0.08$</td>
+              </tr>
+              <tr>
+                <td>$500$</td>
+                <td>$1.65$</td>
+                <td>$33.36$</td>
+                <td>$0.03$</td>
+                <td>$0.04$</td>
+                <td>$0.06$</td>
+                <td>$0.05$</td>
+                <td>$0.08$</td>
+                <td>$0.07$</td>
+              </tr>
+              <tr>
+                <td>$1000$</td>
+                <td>$2.99$</td>
+                <td>$70.52$</td>
+                <td>$0.03$</td>
+                <td>$0.03$</td>
+                <td>$0.05$</td>
+                <td>$0.05$</td>
+                <td>$0.05$</td>
+                <td>$0.05$</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+      <section>
+        <section>
+          <h2>Evaluation: runtime and size</h2>
+          <h4>Runtime (bifiltration + MMA)</h4>
+          <img src="images/SLF/timings_all.svg" width=50%>
+          <h4>Size of the bifiltration (number of bigrades)</h4>
+          <img src="images/SLF/sizes_filt.svg" width=50%>
+        </section>
+        <section>
+          <h2>Additional results</h2>
+          <div class="col2">
+            <h4>Runtime (bifiltration)</h4>
+            <img src="images/SLF/timings_filt.svg" width=100%>
+            <h4>Runtime (CPU vs GPU)</h4>
+            <img src="images/SLF/timings_cpu.svg" width=100%>
+          </div>
+          <div class="col2">
+            <h4>Size of the MMA (number of summands)</h4>
+            <img src="images/SLF/sizes_mma.svg" width=100%>
+            <h4>Average bifiltration criticality</h4>
+            <img src="images/SLF/sizes_crit.svg" width=100%>
+          </div>
+        </section>
+      </section>
+
+      <!-- <section>
+        <h2>Evaluation: empirical stability and approximation</h2>
+      </section> -->
+
+      <section>
+        <section>
+          <h2>Performance evaluation on classification tasks</h2>
+          <br>
+          <div class="col2">
+            <h4>Toy dataset (with noise)</h4>
+            <img src="images/SLF/toy_dataset.png" width=60%>
+          </div>
+          <div class="col2">
+            <h4>Porous materials (with noise)</h4>
+            <img src="images/intro/blobs_pc_zoom.jpg" width=25%>
+            <img src="images/intro/fractal_pc_zoom.jpg" width=25%>
+          </div>
+          <div style="clear: both;"></div>
+          <div class="col2">
+            <img src="images/SLF/swisscheese_2_5000.svg" width=80%>
+          </div>
+          <div class="col2">
+            <img src="images/SLF/rocks_64.svg" width=80%>
+          </div>
+
+          <!-- <table class="results-table" style="margin:0 auto;">
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Flood100</th>
+              <th>Flood300</th>
+              <th>Flood500</th>
+              <th>Flood1000</th>
+              <th>Delaunay</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>NSC-2D-5k</code></td>
+              <td>38.3 / 17.4</td>
+              <td>85.3 / 32.3</td>
+              <td>142.7 / 49.1</td>
+              <td>312.6 / 57.8</td>
+              <td>1484.6 / 91.8</td>
+            </tr>
+            <tr>
+              <td><code>NSC-2D-20k</code></td>
+              <td>91.3 / 11.5</td>
+              <td>150.2 / 12.9</td>
+              <td>219.3 / 19.4</td>
+              <td>416.4 / 38.3</td>
+              <td>OOM</td>
+            </tr>
+            <tr>
+              <td><code>NSC-3D-5k</code></td>
+              <td>183.9 / 24.8</td>
+              <td>800.7 / 43.6</td>
+              <td>2309.3 / 53.0</td>
+              <td>13990.6 / 130.3</td>
+              <td>OOM</td>
+            </tr>
+            <tr>
+              <td><code>rocks64</code></td>
+              <td>602.7 / 11.3</td>
+              <td>1086.7 / 16.1</td>
+              <td>1815.3 / 41.8</td>
+              <td>5925.6 / 70.3</td>
+              <td>OOM</td>
+            </tr>
+          </tbody>
+        </table> -->
+        </section>
+        <section>
+          <h2>Number of landmarks</h2>
+          <img src="images/SLF/mma_landmarks.svg" width="70%">
+          <br>
+          <br>
+          <div class="col3">
+            <h4>Synthetic dataset</h4>
+            <p>Find the radius of low-density regions (4 classes)</p>
+            <br>
+            <img src="images/SLF/swisscheese.svg" width=80%>
+          </div>
+          <div class="col3">
+            <h4>Porous materials</h4>
+            <p>Find which generator was used</p>
+            <br>
+            <img src="images/SLF/rocks.svg" width=80%>
+          </div>
+          <div class="col3">
+            <h4>Synthetic dataset</h4>
+            <p>Find the precise number of low-density regions (124 or 125)</p>
+            <img src="images/SLF/frenchcheese.svg" width=80%>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <h2>Limitations and further work</h2>
+        <br>
+        <ul>
+          <li class="fragment">
+            Limitation in dimensionality (Delaunay complex)
+            <ul>
+              <li>use all simplices between landmarks, for low homology dimension</li>
+            </ul>
+          </li>
+          <br>
+          <li class="fragment">
+            High criticality (many bigrades for each simplex)
+            <ul>
+              <li>cleverly prune the set of bigrades</li>
+            </ul>
+          </li>
+          <br>
+          <li class="fragment">
+            Understand how the Flood bifiltration approximates the Delaunay bifiltration
+            <ul>
+              <li>with additional sampling assumptions</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+
+      <section>
+        <h2>Python package</h2>
+        <img src="images/logos/pypi.svg" height=100 style="position:absolute;top:0;right:0;" />
+        <div class="col2 col-center">
+          <code>pip install sublevel-flood</code>
+          <pre>
+            <code class="language-python" data-trim data-noescape>
+              import slflood
+              from slflood.data import noisy_sphere_data
+
+              import matplotlib.pyplot as plt
+              import multipers
+              import torch
+              
+              pts, lms, fun = noisy_sphere_data(10_000, 300, dim=3, bandwidth=0.2)
+              slf = slflood.slflood_bifiltration(pts.cuda(), lms.cuda(), fun.cuda(),
+                                                 exact=True)
+              mma = multipers.module_approximation(slf)
+              mma.plot(box=[[0, 0], [1, 1]])
+              plt.show()
+            </code>
+          </pre>
+          <img src="images/SLF/slflood.png" width=100% />
+        </div>
+      </section>
+
+      <section data-marker-color=#000000>
+        <h2>Conclusion: summary</h2>
+        <br>
+        <div class="col3 fragment">
+          <h4 style="color: var(--c-red);">Cycle-aware dimensionality reduction</h4>
+          <ul>
+            <li>generalization of the <i>Topological Autoencoders</i> formulation</li>
+            <li>specialized persistence algorithm for planar point sets</li>
+          </ul>
+          <span class="vspace1"></span>
+          <img src="images/TAEpp/TAE.svg" width=75%>
+        </div>
+        <div class="col3 fragment">
+          <h4 style="color: var(--c-blue);">Delaunay&ndash;Rips filtration</h4>
+          <ul>
+            <li>filtration for low-dimensional point sets</li>
+            <li>characterization of the instabilities and performance evaluation on classification</li>
+            <li>specialized persistence algorithm</li>
+          </ul>
+          <span class="vspace1"></span>
+          <img src="images/DR/delrips0.40.svg" width=37%>
+          <img src="images/DR/teaser.png" width=37%>
+        </div>
+        <div class="col3 fragment">
+          <h4 style="color: var(--c-green);">Sublevel Flood bifiltration</h4>
+          <ul>
+            <li>scalable approach for 2-parameter PH</li>
+            <li>theoretical and empirical behavior</li>
+            <li>GPU implementation</li>
+          </ul>
+          <span class="vspace2"></span>
+          <img src="images/SLF/teaser.png" width=75%>
+        </div>
+      </section>
+
+      <section>
+        <h2>A few perspectives</h2>
+        <br>
+        <div class="cols-hcenter">
+          <div class="fragment col2">
+            <h4>Dimensionality reduction</h4>
+            <ul>
+              <li><b>Limits of metric-based filtrations</b> (curse of dimensionality)</li>
+              <li>Use of spectral distances</li>
+              <li>Investigate more <i>qualitative</i> PH-based priors</li>
+              <li>Representation of higher-dimensional features</li>
+            </ul>
+          </div>
+          <div class="fragment col2">
+            <h4>Multiparameter PH</h4>
+            <ul>
+              <li>Theoretical work on the Flood (bi)filtration</li>
+              <li>Accelerations for other families of bifiltrations: degree-Rips...</li>
+            </ul>
+          </div>
+        </div>
+        <span class="vspace5"></span>
+        <div class="fragment col-center col2">
+          <h4>Multiparameter PH priors in dimensionality reduction?</h4>
+        </div>
+      </section>
+
+      <section>
+        <span></span>
+        <h2>Thank you for your attention!</h2>
+
+        <div>
+          <img src="images/logos/UL1_Logo1-couleur-RVB-120.svg" height=120 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/Logo_liris.png" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/Logo_of_Sorbonne_University.svg" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/lip6.svg" height=100 />
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <img src="images/logos/erc.png" height=100 />
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <section data-visibility="hidden">
+        <h2>Committee</h2>
+        <table>
+          <tr>
+            <td>Alexandra Bac</td>
+            <td>Polytech Marseille</td>
+            <td>Rapporteure</td>
+          </tr>
+          <tr>
+            <td>Michael Kerber</td>
+            <td>TU Graz </td>
+            <td>Rapporteur</td>
+          </tr>
+          <tr>
+            <td>Raphaëlle Chaine</td>
+            <td>Université Lyon 1</td>
+            <td>Examinatrice</td>
+          </tr>
+          <tr>
+            <td>Erin Chambers</td>
+            <td>University of Notre Dame</td>
+            <td>Examinatrice</td>
+          </tr>
+          <tr>
+            <td>Nicolas Courty</td>
+            <td>Université Bretagne Sud</td>
+            <td>Examinateur</td>
+          </tr>
+          <tr>
+            <td>Théo Lacombe</td>
+            <td>Université Gustave Eiffel</td>
+            <td>Examinateur</td>
+          </tr>
+          <tr>
+            <td>Julie Digne</td>
+            <td>CNRS</td>
+            <td>Directrice de thèse</td>
+          </tr>
+          <tr>
+            <td>Julien Tierny</td>
+            <td>CNRS</td>
+            <td>Directeur de thèse</td>
+          </tr>
+        </table>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script src="../reveal.js/dist/plugin/highlight.js"></script>
+  <script src="../reveal.js/dist/plugin/math.js"></script>
+  <script src="js/init.js"></script>
+  <script src="js/custom-colormap.js"></script>
+  <script src="js/plots.js"></script>
+
+  <script src="js/filtration-data.js"></script>
+  <script src="js/filtration-core.js"></script>
+  <script src="js/filtration-view.js"></script>
+  <script src="js/persistence-view.js"></script>
+
+  <script src="js/bifiltration-data.js"></script>
+  <script src="js/bifiltration-core.js"></script>
+  <script src="js/bifiltration-view.js"></script>
+
+  <script src="js/slides.js"></script>
+</body>
+
+</html>
