@@ -74,6 +74,15 @@
     var(--vis-lt1);
 }
 
+/* Scroll view (reveal.js switches to it on narrow screens, e.g. phones in
+   portrait): slides are moved into .scroll-page wrappers, but the now-empty
+   vertical-stack <section>s stay in .slides without the .stack class. The rule
+   above would paint them as opaque full-canvas slides on top of the first
+   page (the title slide), so hide them. */
+.reveal-viewport.reveal-scroll .slides > section {
+  display: none !important;
+}
+
 /*********************************************
  * HEADINGS
  *********************************************/
